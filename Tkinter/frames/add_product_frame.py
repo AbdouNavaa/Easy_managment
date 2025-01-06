@@ -1,116 +1,138 @@
+import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox
-from ttkthemes import ThemedTk
 import pymysql
-import ttkbootstrap as  ttk
-
-# functions
-
 def connect_db():
     try:
         # create a connection object
         global connect
         global my_cursor
+        global suppliers
+
         connect = pymysql.connect(host='localhost', user='root', password='Azerty2024', database='sms')
         my_cursor = connect.cursor()
+        suppliers = connect.cursor()
+        
         # messagebox.showinfo('Connection Successful', 'Connected to the database')
         print('Connected to the database')
         return connect
     except Exception as e:
         messagebox.showerror('Connection Failed', str(e))
         
+def fetch_total(total_variable,myList):
+    query = f'SELECT * FROM supplier'
+    total_variable.execute(query)
+    # print('ffdfd:', total_variable.fetchall())
+    result = total_variable.fetchall()  # Utiliser fetchone() au lieu de fetchall()
+    # if result:
+    for variable in result:
+        
+        print(variable[1])
+        myList.append(f'{variable[0]}-{variable[1]}')
+        # return variable[1]  # Retourner le premier (et seul) élément du tuple
+    print(myList)
+    return myList  # Retourner 0 si aucun résultat n'est trouvé   
 
 # import 
 def create_add_product_frame(root):
     
-    
-    style = ttk.Style()
-    style.configure(
-        "AddProd.TFrame",
-        background="#fff",  # Couleur de fond
-        borderwidth=1,
-        relief="ridge"  ,# Type de bordure (flat, solid, ridge, etc.)
-        
-    )
-    
-    add_product_frame = ttk.Frame(root, style="AddProd.TFrame", padding=20,)
-    add_product_frame.pack(padx=600,pady=10,fill='y',ipady=100,)
+    add_product_frame = ctk.CTkFrame(root, fg_color='#fff', border_width=1, border_color='#ddd')
+    add_product_frame.pack(padx=400,pady=10,ipady=100)
     
     # info colored labelframe style
-    # ttk.Labelframe(add_product_frame,bootstyle="info").pack()
+    # ctk.CTkLabelframe(add_product_frame,bootstyle="info").pack()
 
     # Champ de nom d'utilisateur
     # Titre de la page
-    title_label = ttk.Label(
-        add_product_frame, text="منتج إضافة",  background="#fff", foreground="#333", font=('book antiqua', 20, 'bold'),anchor='center'
-    )
-    title_label.pack(fill='x', padx=620,)
-
-    product_name_label = ttk.Label(
-        add_product_frame, text="اسم المنتج",background='white',anchor='e'
-    )
-    product_name_label.pack(fill='x', padx=620,)
     
-    name_placeholder = tk.StringVar(value='Name')
-    product_name_entry = ttk.Entry(
-        add_product_frame, font=("times new roman", 14), width=30, textvariable=name_placeholder,
+    title_label = ctk.CTkLabel(
+        add_product_frame, text="منتج إضافة",  bg_color="#fff",  font=('book antiqua', 20, 'bold'),anchor='center'
     )
-    product_name_entry.pack(fill='x',ipady=10 ,pady=10, padx=620,)
+    title_label.pack(fill='x', padx=20,pady=(10,1))
+
+    product_name_label = ctk.CTkLabel(
+        add_product_frame, text=" المنتج اسم",bg_color='white',anchor='e'
+    )
+    product_name_label.pack(fill='x', padx=20,)
+    
+    # name_placeholder = tk.StringVar(value='اسم المنتج')
+    product_name_entry = ctk.CTkEntry(
+        add_product_frame, font=("times new roman", 14), 
+        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right'
+    )
+    product_name_entry.pack(fill='x',ipady=10 ,pady=10, padx=20,)
 
     # Champ de mot de passe
-    description_label = ttk.Label(
-        add_product_frame, text="وصف المنتج", background="white",anchor='e'
+    description_label = ctk.CTkLabel(
+        add_product_frame, text=" المنتج وصف  ", bg_color="white",anchor='e'
     )
-    description_label.pack(fill='x', padx=620,)
-    description_entry = ttk.Entry(
-        add_product_frame, font=("times new roman", 14), width=30,  
+    description_label.pack(fill='x', padx=20,)
+    description_entry = ctk.CTkEntry(
+        add_product_frame, font=("times new roman", 14), width=30,
+        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right'  
     )
-    description_entry.pack(fill='x',ipady=10 ,pady=10, padx=620,)
+    description_entry.pack(fill='x',ipady=10 ,pady=10, padx=20,)
 
-# Champ de mot de Price
-    price_label = ttk.Label(
-        add_product_frame, text=" السعر", background="white",anchor='e'
+    # Champ de mot de Price
+    price_label = ctk.CTkLabel(
+        add_product_frame, text=" السعر", bg_color="white",anchor='e'
     )
-    price_label.pack(fill='x', padx=620,)
-    price_entry = ttk.Entry(
-        add_product_frame, font=("times new roman", 14), width=30,  
+    price_label.pack(fill='x', padx=20,)
+    price_entry = ctk.CTkEntry(
+        add_product_frame, font=("times new roman", 14), width=30,
+        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right'  
     )
-    price_entry.pack(fill='x',ipady=10 ,pady=10, padx=620,)
+    price_entry.pack(fill='x',ipady=10 ,pady=10, padx=20, )
 
 
     # Champ de price2
-    price1_label = ttk.Label(
-        add_product_frame, text=" سعر الشراء", background="white",anchor='e'
+    price1_label = ctk.CTkLabel(
+        add_product_frame, text="الشراء سعر  ", bg_color="white",anchor='e'
     )
-    price1_label.pack(fill='x', padx=620,)
-    price1_entry = ttk.Entry(
-        add_product_frame, font=("times new roman", 14), width=30,  
+    price1_label.pack(fill='x', padx=20,)
+    price1_entry = ctk.CTkEntry(
+        add_product_frame, font=("times new roman", 14), width=30,
+        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right'  
     )
-    price1_entry.pack(fill='x',ipady=10 ,pady=10, padx=620,)
+    price1_entry.pack(fill='x',ipady=10 ,pady=10, padx=20,)
     
     
-# Champ de Supplier
-    supplier_label = ttk.Label(
-        add_product_frame, text="المورد", background="white",anchor='e'
+    # Champ de Supplier
+    supplier_label = ctk.CTkLabel(
+        add_product_frame, text="المورد", bg_color="white",anchor='e'
     )
-    supplier_label.pack(fill='x', padx=620,)
-    supplier_entry = ttk.Entry(
-        add_product_frame, font=("times new roman", 14), width=30,  
+    supplier_label.pack(fill='x', padx=20,)
+    connect_db()
+    myList = []
+    fetch_total(suppliers, myList)
+    # optionmenu_var = ctk.StringVar(value="موردا اختر")
+    supplier_entry = ctk.CTkOptionMenu(
+        add_product_frame,values=myList,anchor='center',
+        text_color="#333",dropdown_fg_color="#fff",
+        button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
+        #  variable=optionmenu_var
     )
-    supplier_entry.pack(fill='x',ipady=10 ,pady=10, padx=620,)
+    
+    
+    # optionmenu = ctk.CTkOptionMenu(search_frame,values=["الاقسام كل","option 1", "option 2"],text_color="#333",dropdown_fg_color="#fff",
+    #                     button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",
+    #                     # command=optionmenu_callback,
+    #                     variable=optionmenu_var)
+    supplier_entry.pack(fill='x',ipady=10 ,pady=10, padx=20,)
     
 
     
     
-# quantity
-    quantity_label = ttk.Label(
-        add_product_frame, text="الكمية", background="white",anchor='e'
+    # quantity
+    quantity_label = ctk.CTkLabel(
+        add_product_frame, text="الكمية", bg_color="white",anchor='e'
     )
-    quantity_label.pack(fill='x', padx=620,) 
-    quantity_entry = ttk.Entry(
-        add_product_frame, font=("times new roman", 14), width=30,  
+    quantity_label.pack(fill='x', padx=20,) 
+    quantity_entry = ctk.CTkEntry(
+        add_product_frame, font=("times new roman", 14), width=30,
+        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right'  
     )
-    quantity_entry.pack(fill='x',ipady=10 ,pady=10, padx=620,)
+    quantity_entry.pack(fill='x',ipady=10 ,pady=(10,1), padx=20,)
     
     # Bouton de connexion
 
@@ -119,7 +141,7 @@ def create_add_product_frame(root):
         product_description = description_entry.get()
         product_price = price_entry.get()
         price_before = price1_entry.get()
-        supplier = supplier_entry.get()
+        supplier = supplier_entry.get()[0]
         quantity = quantity_entry.get()
         
         # Validation des informations de connexion
@@ -137,63 +159,41 @@ def create_add_product_frame(root):
                 
                 result = messagebox.askyesno('Product added successfully', 'do you want to clean the form?' , parent=add_product_frame)
                 if result == True:
-                    product_name_entry.delete(0, END)
-                    description_entry.delete(0, END)
-                    price_entry.delete(0, END)
-                    price1_entry.delete(0, END)
-                    supplier_entry.delete(0, END)
-                    quantity_entry.delete(0, END)
+                    product_name_entry.delete(0,tk.END)
+                    description_entry.delete(0,tk.END)
+                    price_entry.delete(0,tk.END)
+                    price1_entry.delete(0,tk.END)
+                    # supplier_entry.delete(0,tk.END)
+                    quantity_entry.delete(0,tk.END)
+                    # root.destroy()
+                    # import products_frame
             except Exception as e:
                 messagebox.showerror('Error', str(e))
             # print(user)
             
-        if user == 1 :  # Exemple simple
-            messagebox.showinfo("Login Successful", f"Welcome! {username}")
-            main_window.destroy()
-            # Créer une nouvelle fenêtre avec des widgets supplémentaires
-            import home
-        else:
-            messagebox.showerror("Login Failed", "Invalid Username or Password")
 
-    b_style = ttk.Style()
-    b_style.configure(
-        "button.TButton",
-        background="#000",  # Couleur de fond
-        # bgcolor="#000",
-        borderwidth=1,
-        relief="ridge"  ,# Type de bordure (flat, solid, ridge, etc.)
-        
-    )
-    add_button = ttk.Button(
+    add_button = ctk.CTkButton(
         add_product_frame,
         text="تاكيد",
-        bootstyle="success",
-        # style="button.TButton",
-        # font=("Helvetica", 14, "bold"),
-        # bg="#001",
-        # fg="white",anchor='center',
-        # activebackground="white",
-        # activeforeground="black",
-        # cursor="hand2",
-        # padding=10,
         width=23,
         command=add_products
         
     )
-    add_button.pack(pady=20,fill='x',padx=620,ipady=10)
+    add_button.pack(pady=10,fill='x',padx=20,ipady=10)
     
     
     
     return add_product_frame
 
 
-# Fenêtre principale
-# root =ttk.Window()
-# root.title("Add Product")
-# root.state("zoomed")
+# # window 
+# window = ctk.CTk(fg_color="#fff")
+# window.title('customtkinter app')
+# window.geometry('1200x550')
+# window.state('zoomed')
 
-# # Création du cadre Home
-# add_product_frame = create_add_product_frame(root)
-# add_product_frame.pack(fill="x")
+# add_product_frame = create_add_product_frame(window)
+# add_product_frame.pack(fill='both', expand=True)
 
-# root.mainloop()
+# # run
+# window.mainloop()

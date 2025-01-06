@@ -1,95 +1,109 @@
 import tkinter as tk
-# from tkinter import ttk
-import ttkbootstrap as  ttk
 import customtkinter as ctk
-from PIL import Image, ImageTk
-# Importation des frames
+from tkinter import Menu
 from frames.home_frame import create_home_frame
 from frames.products_frame import create_products_frame
 from frames.categories_frame import create_categories_frame
 from frames.add_product_frame import create_add_product_frame
+from frames.add_category_frame import create_add_category_frame
+from frames.add_supplier_frame import create_add_supplier_frame
+
 from frames.suppliers_frame import create_suppliers_frame
 from frames.inventory_frame import create_inventory_frame
 
-def show_frame(frame):
-    # Masquer tous les cadres
-    for f in all_frames:
-        f.pack_forget()
-    # Afficher le cadre sélectionné
-    frame.pack(fill="both", expand=True)
 
-def show_subsection(section):
-    print(f"Affichage de la sous-section : {section}")
+class App(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("Product Management")
+        self.geometry("1200x800")
+        # Create a container for all pages
+        self.container = ctk.CTkFrame(self, fg_color="white")
+        self.container.pack(fill="both", expand=True)
 
-# Fenêtre principale
-# Configuration principale de l'application
-ctk.set_appearance_mode("dark")  # Modes: "dark", "light"
-ctk.set_default_color_theme("blue")  # Themes: "blue", "green", "dark-blue"
+        # Store pages (frames) in a dictionary
+        self.frames = {}
 
-# Fenêtre principale
-root = ctk.CTk()
-root.title("Product Management")
-root.state("zoomed")
+        # Initialize the navigation bar
+        self.create_navbar()
 
-# Barre de navigation
-navbar = ttk.Frame(root,  height=50,bootstyle="dark")
-navbar.pack(fill="x")
+        # Initialize and show the home page
+        self.init_frames()
+        self.show_frame("Home")
 
-# Création des frames
-home_frame = create_home_frame(root)
-products_frame = create_products_frame(root)
-categories_frame = create_categories_frame(root)
-add_product_frame = create_add_product_frame(root)
-# add_product_frame.pack(fill="x",side='right')
-suppliers_frame = create_suppliers_frame(root)
-inventory_frame = create_inventory_frame(root)
+    def init_frames(self):
+        """Initialize and store all frames/pages."""
+        self.frames["Home"] = create_home_frame(self.container)
+        self.frames["Products"] = create_products_frame(self.container)
+        self.frames["Categories"] = create_categories_frame(self.container)
+        self.frames["AddProduct"] = create_add_product_frame(self.container)
+        self.frames["AddProductCategory"] = create_add_category_frame(self.container)
+        self.frames["AddSupplier"] = create_add_supplier_frame(self.container)
+        self.frames["Suppliers"] = create_suppliers_frame(self.container)
+        self.frames["Inventory"] = create_inventory_frame(self.container)
 
-all_frames = [home_frame, products_frame, categories_frame, add_product_frame, suppliers_frame, inventory_frame]
+        # Pack all frames but hide them initially
+        for frame in self.frames.values():
+            frame.pack(fill="both", expand=True)
+            frame.pack_forget()
 
-# Labels de navigation avec menus déroulants
-navbar_font = ("Arial", 14, "bold")
+    def show_frame(self, frame_name):
+        """Switch to the frame with the given name."""
+        for name, frame in self.frames.items():
+            # print(name)
+            if name == frame_name:
+                if name == "AddProduct" or name == "AddProductCategory" or name == "AddSupplier" :
+                    frame.pack(fill="both", expand=True,padx=400,pady=10,ipady=100)
+                else:
+                    frame.pack(fill="both", expand=True)
+            else:
+                frame.pack_forget()
 
-home_label = ttk.Label(navbar, text="الرئيسية", bootstyle="inverse-dark",font=navbar_font, cursor="hand2")
-home_label.pack(side="right", padx=20, pady=10)
-home_label.bind("<Button-1>", lambda e: show_frame(home_frame))
+    def create_navbar(self):
+        """Create a navigation bar for switching between pages."""
+        # Create a top-level menu
+        nav_style = {"font": ("Arial", 28), "bg": "#333", "fg": "white"}
+        navbar = Menu(self, tearoff=0, **nav_style)
+        self.config(menu=navbar)
 
-# dropdown_style = ttk.Style()
-# dropdown_style.configure("TMenubutton", background="#333", foreground="white", font=navbar_font,focuscolor="#333")
+        # Styling parameters
+        submenu_style = {"font": ("Arial", 15), "activebackground": "#fff", "bg": "#fff", "fg": "black",
+                        "activeborderwidth": 3,"activeforeground": "black"}
 
-dropdown_style = ttk.Style()
-dropdown_style.configure(
-    "TMenubutton",
-    background="#333",  # Couleur de fond
-    foreground="white",  # Couleur du texte
-    font=("Arial", 12, "bold"),  # Police
-    padding=5,  # Espacement interne
-    relief="flat"  # dropdown_style de bordure
-)
-dropdown_style.map(
-    "TMenubutton",
-    background=[("active", "#333"),("pressed", "#333"),("focus", "#333")],  # Couleur quand actif
-    foreground=[("focus", "red")]  # Texte grisé quand désactivé
-)
+        # Define individual menus
+        empty_menu = Menu(navbar, tearoff=0, **submenu_style)
+        navbar.add_cascade(label="                                                                                                                                                                                                                                                                                                     ", menu=empty_menu)
+        # empty_menu.add_command(label="                              ", command=lambda: self.show_frame("Home"))
 
-# Dropdown pour Produits
-products_menu_button = ttk.Menubutton(navbar, text="المنتجات", bootstyle="dark",takefocus=True)
-products_menu = tk.Menu(products_menu_button, tearoff=0, bg="#fff", fg="black")
-products_menu.add_command(label="قائمة المنتجات", command=lambda: show_frame(products_frame))
-products_menu.add_command(label="منتج اضافة", command=lambda: show_frame(add_product_frame))
-products_menu_button["menu"] = products_menu
-products_menu_button.pack(side="right", padx=20, pady=10)
+        inventory_menu = Menu(navbar, tearoff=0, **submenu_style)
+        navbar.add_cascade(label="المخزون", menu=inventory_menu)
+        inventory_menu.add_command(label="إدارة المخزون", command=lambda: self.show_frame("Inventory"))        
 
-# Dropdown pour Catégories
-categories_menu_button = ttk.Menubutton(navbar, text="الأقسام", bootstyle="dark")
-categories_menu = tk.Menu(categories_menu_button, tearoff=0, bg="#fff", fg="black")
-categories_menu.add_command(label="المنتجات", command=lambda: show_frame(products_frame))
-categories_menu.add_command(label="الفئات", command=lambda: show_frame(categories_frame))
-categories_menu.add_command(label="الموردين", command=lambda: show_frame(suppliers_frame))
-categories_menu.add_command(label="تعديلات المخزون", command=lambda: show_frame(inventory_frame))
-categories_menu_button["menu"] = categories_menu
-categories_menu_button.pack(side="right", padx=20, pady=10)
 
-# Afficher le cadre par défaut
-show_frame(home_frame)
+        suppliers_menu = Menu(navbar, tearoff=0, **submenu_style)
+        navbar.add_cascade(label="الموردين", menu=suppliers_menu)
+        suppliers_menu.add_command(label="عرض الموردين", command=lambda: self.show_frame("Suppliers"))
+        suppliers_menu.add_command(label="إضافة مورد", command=lambda: self.show_frame("AddSupplier"))
 
-root.mainloop()
+        categories_menu = Menu(navbar, tearoff=0, **submenu_style)
+        navbar.add_cascade(label="الفئات", menu=categories_menu)
+        categories_menu.add_command(label="عرض الفئات", command=lambda: self.show_frame("Categories"))
+        categories_menu.add_command(label="إضافة فئة", command=lambda: self.show_frame("AddProductCategory"))
+
+        products_menu = Menu(navbar, tearoff=0, **submenu_style)
+        navbar.add_cascade(label="المنتجات", menu=products_menu)
+        products_menu.add_command(label="عرض المنتجات", command=lambda: self.show_frame("Products"))
+        products_menu.add_command(label="إضافة منتج", command=lambda: self.show_frame("AddProduct"))
+
+        home_menu = Menu(navbar, tearoff=0, **submenu_style, )
+        navbar.add_cascade(label="الرئيسية", menu=home_menu)
+        home_menu.add_command(label="الرئيسية", command=lambda: self.show_frame("Home"))
+
+
+        # Align the items to the right in the menu bar
+        # self.tk.call("tk", "menu", "configure", navbar, "-postcommand", f"menubar_right {str(navbar)}")
+
+
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()
