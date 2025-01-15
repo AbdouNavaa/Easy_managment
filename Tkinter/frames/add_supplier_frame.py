@@ -44,7 +44,7 @@ def create_add_supplier_frame(root):
     # Page Title
     title_label = ctk.CTkLabel(
         add_supplier_frame, text="مورد إضافة", bg_color="#fff", 
-        font=('book antiqua', 20, 'bold'), anchor='center'
+        font=('Arial', 20, 'bold'), anchor='center'
     )
     title_label.pack(fill='x', padx=20, pady=(10, 1))
 

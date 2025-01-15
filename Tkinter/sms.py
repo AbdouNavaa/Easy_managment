@@ -83,56 +83,56 @@ def add_student():
     
         
     # Id
-    id_label = Label(add_student_windo,text='Id', font=('book antiqua', 15,'bold'))
+    id_label = Label(add_student_windo,text='Id', font=('Arial', 15,'bold'))
     id_label.grid(row=0,column=0,padx=20,pady=15,sticky=W)
     
     id_entry = Entry(add_student_windo, font=('arial', 15,'bold'), width=20)
     id_entry.grid(row=0,column=1,padx=20,pady=15)
     
     # Name
-    name_label = Label(add_student_windo,text='Name', font=('book antiqua', 15,'bold'))
+    name_label = Label(add_student_windo,text='Name', font=('Arial', 15,'bold'))
     name_label.grid(row=1,column=0,padx=20,pady=15,sticky=W)
     
     name_entry = Entry(add_student_windo, font=('arial', 15,'bold'), width=20)
     name_entry.grid(row=1,column=1,padx=20,pady=15)
     
     # Level
-    level_label = Label(add_student_windo,text='Level', font=('book antiqua', 15,'bold'))
+    level_label = Label(add_student_windo,text='Level', font=('Arial', 15,'bold'))
     level_label.grid(row=2,column=0,padx=20,pady=15,sticky=W)
     
     level_entry = Entry(add_student_windo, font=('arial', 15,'bold'), width=20)
     level_entry.grid(row=2,column=1,padx=20,pady=15)
     
     # Number
-    number_label = Label(add_student_windo,text='Number', font=('book antiqua', 15,'bold'))
+    number_label = Label(add_student_windo,text='Number', font=('Arial', 15,'bold'))
     number_label.grid(row=3,column=0,padx=20,pady=15,sticky=W)
     
     number_entry = Entry(add_student_windo, font=('arial', 15,'bold'), width=20)
     number_entry.grid(row=3,column=1,padx=20,pady=15)
     
     # Email
-    email_label = Label(add_student_windo,text='Email', font=('book antiqua', 15,'bold'))
+    email_label = Label(add_student_windo,text='Email', font=('Arial', 15,'bold'))
     email_label.grid(row=4,column=0,padx=20,pady=15,sticky=W)
     
     email_entry = Entry(add_student_windo, font=('arial', 15,'bold'), width=20)
     email_entry.grid(row=4,column=1,padx=20,pady=15)
     
     # Address
-    address_label = Label(add_student_windo,text='Address', font=('book antiqua', 15,'bold'))
+    address_label = Label(add_student_windo,text='Address', font=('Arial', 15,'bold'))
     address_label.grid(row=5,column=0,padx=20,pady=15,sticky=W)
     
     address_entry = Entry(add_student_windo, font=('arial', 15,'bold'), width=20)
     address_entry.grid(row=5,column=1,padx=20,pady=15)
     
     # Gender
-    gender_label = Label(add_student_windo,text='Gender', font=('book antiqua', 15,'bold')) 
+    gender_label = Label(add_student_windo,text='Gender', font=('Arial', 15,'bold')) 
     gender_label.grid(row=6,column=0,padx=20,pady=15,sticky=W)
     
     gender_entry = Entry(add_student_windo, font=('arial', 15,'bold'), width=20)    
     gender_entry.grid(row=6,column=1,padx=20,pady=15)
     
     # GPA
-    gpa_label = Label(add_student_windo,text='GPA', font=('book antiqua', 15,'bold'))
+    gpa_label = Label(add_student_windo,text='GPA', font=('Arial', 15,'bold'))
     gpa_label.grid(row=7,column=0,padx=20,pady=15,sticky=W)
     
     gpa_entry = Entry(add_student_windo, font=('arial', 15,'bold'), width=20)
@@ -164,56 +164,56 @@ def search_student():
     
         
     # Id
-    id_label = Label(search_student_windo,text='Id', font=('book antiqua', 15,'bold'))
+    id_label = Label(search_student_windo,text='Id', font=('Arial', 15,'bold'))
     id_label.grid(row=0,column=0,padx=20,pady=15,sticky=W)
     
     id_entry = Entry(search_student_windo, font=('arial', 15,'bold'), width=20)
     id_entry.grid(row=0,column=1,padx=20,pady=15)
     
     # Name
-    name_label = Label(search_student_windo,text='Name', font=('book antiqua', 15,'bold'))
+    name_label = Label(search_student_windo,text='Name', font=('Arial', 15,'bold'))
     name_label.grid(row=1,column=0,padx=20,pady=15,sticky=W)
     
     name_entry = Entry(search_student_windo, font=('arial', 15,'bold'), width=20)
     name_entry.grid(row=1,column=1,padx=20,pady=15)
     
     # Level
-    level_label = Label(search_student_windo,text='Level', font=('book antiqua', 15,'bold'))
+    level_label = Label(search_student_windo,text='Level', font=('Arial', 15,'bold'))
     level_label.grid(row=2,column=0,padx=20,pady=15,sticky=W)
     
     level_entry = Entry(search_student_windo, font=('arial', 15,'bold'), width=20)
     level_entry.grid(row=2,column=1,padx=20,pady=15)
     
     # Number
-    number_label = Label(search_student_windo,text='Number', font=('book antiqua', 15,'bold'))
+    number_label = Label(search_student_windo,text='Number', font=('Arial', 15,'bold'))
     number_label.grid(row=3,column=0,padx=20,pady=15,sticky=W)
     
     number_entry = Entry(search_student_windo, font=('arial', 15,'bold'), width=20)
     number_entry.grid(row=3,column=1,padx=20,pady=15)
     
     # Email
-    email_label = Label(search_student_windo,text='Email', font=('book antiqua', 15,'bold'))
+    email_label = Label(search_student_windo,text='Email', font=('Arial', 15,'bold'))
     email_label.grid(row=4,column=0,padx=20,pady=15,sticky=W)
     
     email_entry = Entry(search_student_windo, font=('arial', 15,'bold'), width=20)
     email_entry.grid(row=4,column=1,padx=20,pady=15)
     
     # Address
-    address_label = Label(search_student_windo,text='Address', font=('book antiqua', 15,'bold'))
+    address_label = Label(search_student_windo,text='Address', font=('Arial', 15,'bold'))
     address_label.grid(row=5,column=0,padx=20,pady=15,sticky=W)
     
     address_entry = Entry(search_student_windo, font=('arial', 15,'bold'), width=20)
     address_entry.grid(row=5,column=1,padx=20,pady=15)
     
     # Gender
-    gender_label = Label(search_student_windo,text='Gender', font=('book antiqua', 15,'bold')) 
+    gender_label = Label(search_student_windo,text='Gender', font=('Arial', 15,'bold')) 
     gender_label.grid(row=6,column=0,padx=20,pady=15,sticky=W)
     
     gender_entry = Entry(search_student_windo, font=('arial', 15,'bold'), width=20)    
     gender_entry.grid(row=6,column=1,padx=20,pady=15)
     
     # GPA
-    gpa_label = Label(search_student_windo,text='GPA', font=('book antiqua', 15,'bold'))
+    gpa_label = Label(search_student_windo,text='GPA', font=('Arial', 15,'bold'))
     gpa_label.grid(row=7,column=0,padx=20,pady=15,sticky=W)
     
     gpa_entry = Entry(search_student_windo, font=('arial', 15,'bold'), width=20)
@@ -246,56 +246,56 @@ def update_student():
     
         
     # Id
-    id_label = Label(update_student_windo,text='Id', font=('book antiqua', 15,'bold'))
+    id_label = Label(update_student_windo,text='Id', font=('Arial', 15,'bold'))
     id_label.grid(row=0,column=0,padx=20,pady=15,sticky=W)
     
     id_entry = Entry(update_student_windo, font=('arial', 15,'bold'), width=20)
     id_entry.grid(row=0,column=1,padx=20,pady=15)
     
     # Name
-    name_label = Label(update_student_windo,text='Name', font=('book antiqua', 15,'bold'))
+    name_label = Label(update_student_windo,text='Name', font=('Arial', 15,'bold'))
     name_label.grid(row=1,column=0,padx=20,pady=15,sticky=W)
     
     name_entry = Entry(update_student_windo, font=('arial', 15,'bold'), width=20)
     name_entry.grid(row=1,column=1,padx=20,pady=15)
     
     # Level
-    level_label = Label(update_student_windo,text='Level', font=('book antiqua', 15,'bold'))
+    level_label = Label(update_student_windo,text='Level', font=('Arial', 15,'bold'))
     level_label.grid(row=2,column=0,padx=20,pady=15,sticky=W)
     
     level_entry = Entry(update_student_windo, font=('arial', 15,'bold'), width=20)
     level_entry.grid(row=2,column=1,padx=20,pady=15)
     
     # Number
-    number_label = Label(update_student_windo,text='Number', font=('book antiqua', 15,'bold'))
+    number_label = Label(update_student_windo,text='Number', font=('Arial', 15,'bold'))
     number_label.grid(row=3,column=0,padx=20,pady=15,sticky=W)
     
     number_entry = Entry(update_student_windo, font=('arial', 15,'bold'), width=20)
     number_entry.grid(row=3,column=1,padx=20,pady=15)
     
     # Email
-    email_label = Label(update_student_windo,text='Email', font=('book antiqua', 15,'bold'))
+    email_label = Label(update_student_windo,text='Email', font=('Arial', 15,'bold'))
     email_label.grid(row=4,column=0,padx=20,pady=15,sticky=W)
     
     email_entry = Entry(update_student_windo, font=('arial', 15,'bold'), width=20)
     email_entry.grid(row=4,column=1,padx=20,pady=15)
     
     # Address
-    address_label = Label(update_student_windo,text='Address', font=('book antiqua', 15,'bold'))
+    address_label = Label(update_student_windo,text='Address', font=('Arial', 15,'bold'))
     address_label.grid(row=5,column=0,padx=20,pady=15,sticky=W)
     
     address_entry = Entry(update_student_windo, font=('arial', 15,'bold'), width=20)
     address_entry.grid(row=5,column=1,padx=20,pady=15)
     
     # Gender
-    gender_label = Label(update_student_windo,text='Gender', font=('book antiqua', 15,'bold')) 
+    gender_label = Label(update_student_windo,text='Gender', font=('Arial', 15,'bold')) 
     gender_label.grid(row=6,column=0,padx=20,pady=15,sticky=W)
     
     gender_entry = Entry(update_student_windo, font=('arial', 15,'bold'), width=20)    
     gender_entry.grid(row=6,column=1,padx=20,pady=15)
     
     # GPA
-    gpa_label = Label(update_student_windo,text='GPA', font=('book antiqua', 15,'bold'))
+    gpa_label = Label(update_student_windo,text='GPA', font=('Arial', 15,'bold'))
     gpa_label.grid(row=7,column=0,padx=20,pady=15,sticky=W)
     
     gpa_entry = Entry(update_student_windo, font=('arial', 15,'bold'), width=20)
@@ -376,12 +376,12 @@ root.resizable(True, True)
 root.configure(bg="#fff")
 
 # create frame for date
-date_label = Label(root, font=('book antiqua', 15,'bold'),bg="#fff")
+date_label = Label(root, font=('Arial', 15,'bold'),bg="#fff")
 date_label.place(x=5, y=5)
 clock()
 
 # create frame for slider
-slider_label = Label(root, text='Student Management System',font=('book antiqua', 20,'bold'),bg="#fff")
+slider_label = Label(root, text='Student Management System',font=('Arial', 20,'bold'),bg="#fff")
 slider_label.place(x=250, y=10)
 
 # left frame
@@ -456,7 +456,7 @@ student_table.column('GPA', width=40,anchor='center')
 student_table.pack(fill=BOTH, expand=1,anchor='center')
 
 style = ttk.Style()
-style.configure("Treeview", background="white", foreground="black",rowheight=40, font=('book antiqua', 12,'bold'))
+style.configure("Treeview", background="white", foreground="black",rowheight=40, font=('Arial', 12,'bold'))
 style.configure("Treeview.Heading", background="#fff", foreground="black")
 
 

@@ -28,7 +28,7 @@ def create_add_category_frame(root):
     # Champ de nom d'utilisateur
     # Titre de la page
     title_label = ctk.CTkLabel(
-        add_category_frame, text="فئة إضافة",  bg_color="#fff",  font=('book antiqua', 20, 'bold'),anchor='center'
+        add_category_frame, text="فئة إضافة",  bg_color="#fff",  font=('Arial', 20, 'bold'),anchor='center'
     )
     title_label.pack(fill='x', padx=20,pady=(10,1))
 
@@ -57,7 +57,7 @@ def create_add_category_frame(root):
 
     def add_categories():
         category_name = category_name_entry.get()
-        category_description = description_entry.get(index1='1.0', index2='end')
+        category_description = description_entry.get(index1='0', index2='end')
         
         # Validation des informations de connexion
         if category_name == "" or category_description == "" :

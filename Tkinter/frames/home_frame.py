@@ -1,6 +1,8 @@
 import customtkinter as ctk
 from PIL import Image, ImageTk
 import pymysql
+import os
+
 
 def connect_db():
     try:
@@ -63,14 +65,15 @@ def create_card_with_items(parent, title, items, bg="#fff"):
 
     # Ajout des sous-éléments
     for row_index, (item_title, item_image_path) in enumerate(items):
-        # Image
+
+        image_path = os.path.join(os.path.dirname(__file__), "images", item_image_path)
+        
         item_image = ctk.CTkImage(
-            light_image = Image.open(item_image_path),
-	        # dark_image = Image.open('python_light.png'),
-            # file=item_image_path,
+            light_image=Image.open(image_path),
             size=(25, 25))
         image_label = ctk.CTkLabel(items_container, image=item_image, text="")
         image_label.grid(row=row_index, column=1, padx=10, pady=5, sticky="e")
+
 
         # Titre
         title_label = ctk.CTkLabel(items_container, text=item_title, font=ctk.CTkFont(family='Arial',size=14,weight='bold'),)
