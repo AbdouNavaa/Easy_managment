@@ -29,7 +29,7 @@ class App(ctk.CTk):
 
         # Initialize and show the home page
         self.init_frames()
-        self.show_frame("Home")
+        self.show_frame("AddProduct")
 
     def init_frames(self):
         """Initialize and store all frames/pages."""

@@ -13,10 +13,43 @@ def export_to_excel():
     df.to_excel('products.xlsx', index=False)
     messagebox.showinfo("Exportation réussie", "Les données ont été exportées avec succès dans 'products.xlsx'.")
 
+from tkcalendar import DateEntry
+from datetime import datetime
+
+
+justify = 'left'
+entry_widgets = []  # List to store all entry widgets
+label_widgets = []  # List to store all entry widgets
+
+def direction(dir):
+    global justify
+    if dir == 'Ar':
+        justify = 'right'
+    else:
+        justify = 'left'
+    update_entry_justification()
+
+def update_entry_justification():
+    for entry in entry_widgets:
+        if entry.winfo_exists():
+            entry.configure(justify=justify)
+
+# for entries
+def create_entry(parent):
+    font_arial =("Arial", 14)   
+    entry = ctk.CTkEntry(parent, justify=justify,font=font_arial, fg_color='#fff', border_width=1, border_color='#ddd', corner_radius=8, width=400)
+    entry_widgets.append(entry)
+    return entry
+
+# for labels
+def create_label(parent,text):
+    label = ctk.CTkLabel(parent, bg_color='#f9f9f9', font=("Arial", 16,'bold'), anchor='center', text=text)
+    label_widgets.append(label)
+    return label
 
 # Fonction pour afficher la fenêtre de mise à jour
 def open_update_window(product, update_callback):
-    update_window = ctk.CTkToplevel(fg_color='#fff')
+    update_window = tk.Toplevel(background='#fff')
     # update_window.pack()
     update_window.title("تعديل ")
     
@@ -28,55 +61,61 @@ def open_update_window(product, update_callback):
     canvas = ctk.CTkCanvas(update_window, width=800, height=930)
     canvas.pack( fill="both", expand=True)
 
-    # Créer un scrollbar
-    # scrollbar = ctk.CTkScrollbar(update_window, command=canvas.yview)
-    # scrollbar.pack(side="right", fill="y")
-
-    # Configurer le canvas pour utiliser le scrollbar
-    # canvas.configure(yscrollcommand=scrollbar.set)
-
+    font_arial_title =("Arial", 16,'bold')
+    font_arial =("Arial", 12)
     # Créer un frame pour contenir les champs du formulaire
     frame = ctk.CTkFrame(canvas, fg_color='#fff',)
     canvas.create_window((0,0), window=frame, anchor="center", width=799, )
     frame.columnconfigure((0,1,2), weight=1, uniform='a')
-    # Champ pour le nom du produit
-    ctk.CTkLabel(frame,anchor='e', text="المنتج اسم").grid(row = 0, column = 2, ipady=10 , pady=(30,2), padx=20,)
-    name_entry = ctk.CTkEntry(frame, font=("times new roman", 14), 
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right',width=400)
+    
+    #name
+    name_label = create_label(frame,"اسم المنتج")
+    name_label.grid(row = 0,column=0, columnspan=3, ipady=10, pady=(20,5),  sticky="news")
+    
+    name_entry = create_entry(frame)
     name_entry.insert(0, prod[1])  # Pré-remplir avec la valeur actuelle
-    name_entry.grid(row = 0, column = 0, ipady=10 ,pady=(30,2), padx=20,columnspan=2)
+    name_entry.grid(row = 1, column=0, columnspan=3, ipady=10, pady=2, padx=20, sticky="news")
 
-    ctk.CTkLabel(frame,anchor='e', text="المنتج وصف").grid(row = 1, column = 2, ipady=10 , pady=2, padx=20,)
-    desc_entry = ctk.CTkEntry(frame, font=("times new roman", 14), 
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right',width=400)
+    #desc
+    desc_label = create_label(frame,"وصف المنتج")
+    desc_label.grid(row = 2,column=0, columnspan=3, ipady=10, pady=(20,5),  sticky="news")
+    
+    desc_entry = create_entry(frame)
     desc_entry.insert(0, prod[2])  # Pré-remplir avec la valeur actuelle
-    desc_entry.grid(row = 1, column = 0, ipady=10 , pady=2, padx=20, columnspan=2)
+    desc_entry.grid(row = 3, column=0, columnspan=3, ipady=10, pady=2, padx=20, sticky="news")
 
-    # Champ pour le prix du produit
-    ctk.CTkLabel(frame,anchor='e', text="  السعر").grid(row = 2, column = 2, ipady=10 , pady=2, padx=20,)
-    price_entry = ctk.CTkEntry(frame,font=("times new roman", 14), 
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right',width=400)
+    #price
+    price_label = create_label(frame,"السعر ")
+    price_label.grid(sticky="news",row = 4, column = 2, ipady=10 , pady=2, )
+    price_entry = create_entry(frame)
+    
     price_entry.insert(0, str(prod[3]))  # Pré-remplir avec la valeur actuelle
-    price_entry.grid(row = 3, column = 2, ipady=10 , pady=2, padx=20, )
+    price_entry.grid(row = 5, column = 2, ipady=10 , pady=2, padx=20, )
 
-    ctk.CTkLabel(frame,anchor='e', text="الشراء سعر ").grid(row = 2, column = 1, ipady=10 , pady=2, padx=20,)
-    before_price_entry = ctk.CTkEntry(frame,font=("times new roman", 14), 
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right',width=400)
+    #before_price
+    before_price_label = create_label(frame,"سعر الشراء ")
+    before_price_label.grid(sticky="news",row = 4, column = 1, ipady=10 , pady=2, )
+    
+    before_price_entry = create_entry(frame)
     before_price_entry.insert(0, str(prod[4]))  # Pré-remplir avec la valeur actuelle
-    before_price_entry.grid(row = 3, column = 1, ipady=10 , pady=2, padx=20, )
+    before_price_entry.grid(row = 5, column = 1, ipady=10 , pady=2, padx=20, )
     
     # selling price
-    ctk.CTkLabel(frame,anchor='e', text=" السعر البيع ").grid(row = 2, column = 0, ipady=10 , pady=2, padx=20,)
-    selling_price_entry = ctk.CTkEntry(frame,font=("times new roman", 14), 
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right',width=400)
+    selling_price_label = create_label(frame," سعر البيع ")
+    selling_price_label.grid(sticky="news",row = 4, column = 0, ipady=10 , pady=2, )
+    
+    selling_price_entry = create_entry(frame)
     selling_price_entry.insert(0, str(prod[11]))  # Pré-remplir avec la valeur actuelle
-    selling_price_entry.grid(row = 3, column = 0, ipady=10 , pady=2, padx=20, )    
+    selling_price_entry.grid(row = 5, column = 0, ipady=10 , pady=2, padx=20, ) 
+
     # category
     connect_db()
     list_of_categories = []
     fetch_drop('product_categories',categories, list_of_categories)
 
-    ctk.CTkLabel(frame,anchor='e', text="القسم",).grid(row = 4, column = 2, ipady=10 , pady=2, padx=20,)
+    category_label = create_label(frame,"القسم ")
+    category_label.grid(sticky="news",row = 6, column = 2, ipady=10 , pady=2, )
+    
     prod_categ_default = f"{prod[5]}-{product[2]}"
 
     # Créez une variable Tkinter StringVar
@@ -85,17 +124,22 @@ def open_update_window(product, update_callback):
     category_entry = ctk.CTkOptionMenu(
         frame,values=list_of_categories,anchor='center',
         text_color="#333",dropdown_fg_color="#fff",
+        font=font_arial,
         button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
         variable=prod_categ,
     )
     # category_entry.insert(0, str(prod[5]))  # Pré-remplir avec la valeur actuelle
-    category_entry.grid(row = 5, column = 2, ipady=10 , pady=2, padx=20, )
+    category_entry.grid(row = 7, column = 2, ipady=10 , pady=2, padx=20, )
     
     
     # supplier
     list_of_suppliers = []
     fetch_drop('suppliers',suppliers, list_of_suppliers)
-    ctk.CTkLabel(frame,anchor='e', text=" المورد ",).grid(row = 4, column = 1, ipady=10 , pady=2, padx=20,)
+    
+    #supplier
+    supplier_label = create_label(frame,"المورد ")
+    supplier_label.grid(sticky="news",row = 6, column = 1, ipady=10 , pady=2, )
+    
     prod_supplier_default = prod[6]
 
     # Créez une variable Tkinter StringVar
@@ -104,16 +148,19 @@ def open_update_window(product, update_callback):
         frame,values=list_of_suppliers,anchor='center',
         text_color="#333",dropdown_fg_color="#fff",
         button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
+        font=font_arial,
         variable=prod_supplier
     )
     # supplier_entry.insert(0, str(prod[6]))  # Pré-remplir avec la valeur actuelle
-    supplier_entry.grid(row = 5, column = 1, ipady=10 , pady=2, padx=20, )
+    supplier_entry.grid(row = 7, column = 1, ipady=10 , pady=2, padx=20, )
     
     
     # warehouse
     list_of_warehouses = []
     fetch_drop('warehouses',warehouses, list_of_warehouses)
-    ctk.CTkLabel(frame,anchor='e', text="المخزن ").grid(row = 4, column = 0, ipady=10 , pady=2, padx=20,)
+
+    warehouse_label = create_label(frame,"المخزن ")
+    warehouse_label.grid(sticky="news",row = 6, column = 0, ipady=10 , pady=2, )
     prod_warehouse_default = f"{prod[8]}-{product[4]}"
 
     # Créez une variable Tkinter StringVar
@@ -122,53 +169,73 @@ def open_update_window(product, update_callback):
         frame,values=list_of_warehouses,anchor='center',
         text_color="#333",dropdown_fg_color="#fff",
         button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
+        font=font_arial,
         variable=prod_warehouse
     )
-    warehouse_entry.grid(row = 5, column = 0, ipady=10 , pady=2, padx=20, )
-    # created at
-    ctk.CTkLabel(frame,anchor='e', text=" التاريخ التسجيل ").grid(row = 6, column = 2, ipady=10 , pady=2, padx=20,)
-    created_at_entry = ctk.CTkEntry(frame,font=("times new roman", 14), 
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right',width=400)
-    created_at_entry.insert(0, str(prod[7]))  # Pré-remplir avec la valeur actuelle
-    created_at_entry.grid(row = 7, column = 1, ipady=10 , pady=2, padx=20, columnspan=2)
+    warehouse_entry.grid(row = 7, column = 0, ipady=10 , pady=2, padx=20, )
+
+    # Create the DateEntry widget
+    created_at_label = create_label(frame,"تاريخ التسجيل")
+    created_at_label.grid(sticky="news",row = 8, column = 2, ipady=10 , pady=2, )
+    
+    created_at_entry = DateEntry(frame, width=30, background='white',font=font_arial,
+                                foreground='black', justify='center', date_pattern='yyyy-mm-dd',)
+    created_at_entry.grid(row = 9, column = 2, ipady=10 , pady=2, padx=20, )
+
+    # Set the initial date if available
+    if prod[7]:
+        try:
+            # Check if prod[7] is already a datetime object
+            if isinstance(prod[7], datetime):
+                created_at_entry.set_date(prod[7].date())
+            else:
+                # If it's a string, parse it
+                created_at_entry.set_date(datetime.strptime(prod[7], '%Y-%m-%d %H:%M:%S').date())
+        except ValueError as e:
+            print(f"Invalid date format: {prod[7]}, Error: {e}")
+
     
     # code
-    ctk.CTkLabel(frame,anchor='e', text="الكود ").grid(row = 6, column = 0, ipady=10 , pady=2, padx=20,)
-    code_entry = ctk.CTkEntry(frame,font=("times new roman", 14), 
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right',width=400)
+    code_label = create_label(frame,"الكود ")
+    code_label.grid(sticky="news",row = 8, column = 0, ipady=10 , pady=2, )
+    
+    code_entry = create_entry(frame)
     code_entry.insert(0, str(prod[9]))  # Pré-remplir avec la valeur actuelle
-    code_entry.grid(row = 7, column = 0, ipady=10 , pady=2, padx=20, )
+    code_entry.grid(row = 9, column = 0, ipady=10 , pady=2, padx=20, )
     
     # unit
-    ctk.CTkLabel(frame,anchor='e', text="الوحدة ").grid(row = 8, column = 0, ipady=10 , pady=2, padx=20,)
-    unit_entry = ctk.CTkEntry(frame,font=("times new roman", 14),   
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right',width=400)
+    unit_label = create_label(frame,"الوحدة ")
+    unit_label.grid(sticky="news",row = 8, column = 1, ipady=10 , pady=2, )
+    
+    unit_entry = create_entry(frame)
     unit_entry.insert(0, str(prod[10]))  # Pré-remplir avec la valeur actuelle
-    unit_entry.grid(row = 9, column = 0, ipady=10 , pady=2, padx=20, )
+    unit_entry.grid(row = 9, column = 1, ipady=10 , pady=2, padx=20, )
     
-
+    # qty
+    qty_label = create_label(frame,"الكمية ")
+    qty_label.grid(sticky="news",row = 10, column = 2, ipady=10 , pady=2, )
     
-    # quantity
-
-    ctk.CTkLabel(frame,anchor='e', text=" الكمية ").grid(row = 8, column = 2, ipady=10 , pady=2, padx=20,)
-    qty_entry = ctk.CTkEntry(frame,font=("times new roman", 14), 
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right',width=400)
+    qty_entry = create_entry(frame)
     qty_entry.insert(0, str(prod[12]))  # Pré-remplir avec la valeur actuelle
-    qty_entry.grid(row = 9, column = 1, ipady=10 , pady=2, padx=20, columnspan=2)
+    qty_entry.grid(row = 11, column = 2, ipady=10 , pady=2, padx=20, )
     
     # min quantity
-    ctk.CTkLabel(frame,anchor='e', text="الادنى الحد").grid(row = 10, column = 2, ipady=10 , pady=2, padx=20,)
-    min_qty_entry = ctk.CTkEntry(frame,font=("times new roman", 14), 
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right',width=400)
-    min_qty_entry.insert(0, str(prod[13]))  # Pré-remplir avec la valeur actuelle
-    min_qty_entry.grid(row = 11, column = 1, ipady=10 , pady=2, padx=20, columnspan=2)
+    min_qty_label = create_label(frame,"الحد الادنى")
+    min_qty_label.grid(sticky="news",row = 10, column = 1, ipady=10 , pady=2, )
     
-    # active
-    ctk.CTkLabel(frame,anchor='e', text=" الحالة ").grid(row = 10, column = 0, ipady=10 , pady=2, padx=20,)
-    active_entry = ctk.CTkEntry(frame,font=("times new roman", 14), 
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right',width=400)    
+    min_qty_entry = create_entry(frame)
+    min_qty_entry.insert(0, str(prod[13]))  
+    min_qty_entry.grid(row = 11, column = 1, ipady=10 , pady=2, padx=20, )
+    
+    # status
+    active_label = create_label(frame,"الحالة ")
+    active_label.grid(sticky="news",row = 10, column = 0, ipady=10 , pady=2, )
+    
+    active_entry = create_entry(frame)    
     active_entry.insert(0, str(prod[14]))  # Pré-remplir avec la valeur actuelle
+    # active_entry.grid(row = 11, column = 0, ipady=10 , pady=2, padx=20, )
     active_entry.grid(row = 11, column = 0, ipady=10 , pady=2, padx=20, )
+
     # Bouton pour sauvegarder les modifications
     def save_changes():
         product_name = name_entry.get()
@@ -179,11 +246,11 @@ def open_update_window(product, update_callback):
         product_supplier = supplier_entry.get()[0]
         product_warehouse = warehouse_entry.get()[0]
         product_code = code_entry.get()
-        product_unit = int(unit_entry.get())
+        product_unit = unit_entry.get()
         product_selling_price = float(selling_price_entry.get())
         product_min_qty = float(min_qty_entry.get())
         product_active = int(active_entry.get())
-        created_at = created_at_entry.get()
+        created_at = created_at_entry.get_date().strftime('%Y-%m-%d') if created_at_entry.get_date() else None
         quantity = qty_entry.get()
         product_id = prod[0]
         
@@ -205,17 +272,11 @@ def open_update_window(product, update_callback):
             messagebox.showerror("Error", "Invalid price value!")
             return
 
-        # product[1] = new_name
-        # product[2] = new_desc
-        # product[3] = new_price
-        # product[4] = new_price_before
-        # product[5] = new_supplier
-        # product[6] = new_qty
         messagebox.showinfo("Success", "Product updated successfully!")
-        frame.destroy()  # Fermer la fenêtre de mise à jour
+        update_window.destroy()  # Fermer la fenêtre de mise à jour
         update_callback()
 
-    ctk.CTkButton(frame, text="التغييرات حفظ", command=save_changes).grid(row=14, column=0, columnspan=3, ipady=10, pady=10, padx=20, sticky="news")
+    ctk.CTkButton(frame, text="حفظ", command=save_changes,).grid(row=12, column=0, columnspan=3, ipady=10, pady=(20,10), padx=20, sticky="news")
         # Mettre à jour la taille du frame pour qu'il soit visible dans le canvas
     frame.update_idletasks( )
     canvas.configure(scrollregion=canvas.bbox("all"))
@@ -688,9 +749,6 @@ def show_title_frame(parent, ):
     import_button.pack(side="left",padx=5)
     export_button.pack(side="left")
 
-
-    
-    
 
 # Function to create the products frame
 def create_products_frame(root):
