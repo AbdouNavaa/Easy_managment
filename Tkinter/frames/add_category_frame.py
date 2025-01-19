@@ -12,7 +12,6 @@ def connect_db():
         my_cursor = connect.cursor()
         categories = connect.cursor()
         # messagebox.showinfo('Connection Successful', 'Connected to the database')
-        print('Connected to the database')
         return connect
     except Exception as e:
         messagebox.showerror('Connection Failed', str(e))
@@ -20,15 +19,12 @@ def connect_db():
 def fetch_drop(total_variable,myList):
     query = f'SELECT * FROM product_categories'
     total_variable.execute(query)
-    # print('ffdfd:', total_variable.fetchall())
     result = total_variable.fetchall()  # Utiliser fetchone() au lieu de fetchall()
     # if result:
     for variable in result:
         
-        print(variable[1])
         myList.append(f'{variable[0]}-{variable[1]}')
         # return variable[1]  # Retourner le premier (et seul) élément du tuple
-    print(myList)
     return myList  # Retourner 0 si aucun résultat n'est trouvé   
 
 from tkcalendar import DateEntry
@@ -78,8 +74,8 @@ def create_add_category_frame(root):
     # direction btn
     btns_frame = ctk.CTkFrame(add_category_frame,fg_color='transparent',width=400)
     btns_frame.pack( ipady=10 , padx=20, pady=2)
-    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Fr')).pack(pady=1,padx=(5,155),side='left')
-    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
+    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',hover_color='#eee',text_color='black',command=lambda:direction('Fr')).pack(pady=1,padx=(5,155),side='left')
+    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',hover_color='#eee',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
     # name 
     create_label(add_category_frame,"اسم الفئة").pack(ipady=10 ,pady=5, padx=20,fill='x')
     name_entry = create_entry(add_category_frame)
@@ -105,28 +101,12 @@ def create_add_category_frame(root):
     )
     category_entry.pack(ipady=10 , padx=20,)
     
-    ctk.CTkLabel(add_category_frame, anchor='e', text="تاريخ الانشاء", font=font_arial_title).pack(fill='x', ipady=10, pady=2, padx=20)
     
-    # Create a frame to hold the DateEntry widget and a button
-    date_frame = ctk.CTkFrame(add_category_frame, fg_color='transparent',height=30)
-    date_frame.pack(fill='x', padx=20, pady=5)
-
-    # Create the DateEntry widget
-    created_at_entry = DateEntry(date_frame, width=30, background='white',font=font_arial,
-                                foreground='black', justify='center', date_pattern='yyyy-mm-dd',)
-    created_at_entry.pack( side='right',padx=(0, 10),ipady=10)
-
-    # Create a button to clear the date
-    clear_date_button = ctk.CTkButton(date_frame, text="Clear Date", text_color='black',
-        width=100, height=30, command=lambda: created_at_entry.set_date(None), fg_color='#f9f9f9', hover_color='#f9f9f8', corner_radius=5)
-    clear_date_button.pack(side='left')
-    # Bouton de connexion
-
     def add_categories():
         name = name_entry.get()
         description = desc_entry.get(index1='0.0', index2='end')
         category_id = category_entry.get().split('-')[0]
-        created_at = created_at_entry.get_date().strftime('%Y-%m-%d') if created_at_entry.get_date() else None
+        # created_at = created_at_entry.get_date().strftime('%Y-%m-%d') if created_at_entry.get_date() else None
         
         # Validation des informations de connexion
         if name == "" or description == "" :
@@ -135,8 +115,8 @@ def create_add_category_frame(root):
             try:
                 
                 connect_db()
-                query = 'insert into product_categories values(null,%s,%s,%s,%s)'
-                my_cursor.execute(query,(name, description,category_id,created_at))
+                query = 'insert into product_categories values(null,%s,%s,%s,NOW())'
+                my_cursor.execute(query,(name, description,category_id))
                 connect.commit()
                 messagebox.showinfo('Success', 'category added successfully')
                 
@@ -145,20 +125,17 @@ def create_add_category_frame(root):
                 if result == True:
                     name_entry.delete(0,tk.END)
                     desc_entry.delete(1.0, tk.END)
-                    created_at_entry.set_date(None)
             except Exception as e:
                 messagebox.showerror('Error', str(e))
-            # print(user)
             
 
     add_button = ctk.CTkButton(
         add_category_frame,
         text="تاكيد",
-        width=23,
         command=add_categories
         
     )
-    add_button.pack(pady=10,fill='x',padx=20,ipady=15)
+    add_button.pack(pady=10,fill='x',padx=20,ipady=10)
     
     
     

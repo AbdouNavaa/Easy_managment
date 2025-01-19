@@ -13,14 +13,13 @@ def connect_db():
         global category_total
         global inventory_total
         global supplier_total
-        connect = pymysql.connect(host='localhost', user='root', password='Azerty2024', database='sms')
+        connect = pymysql.connect(host='localhost', user='root', password='Azerty2024', database='easy_db')
         my_cursor = connect.cursor()
         product_total = connect.cursor()
         category_total = connect.cursor()
         # inventory_total = connect.cursor()
         supplier_total = connect.cursor()
         # messagebox.showinfo('Connection Successful', 'Connected to the database')
-        print('Connected to the database')
         return connect
     except Exception as e:
         messagebox.showerror('Connection Failed', str(e))
@@ -31,7 +30,6 @@ def fetch_total(table_name,total_variable):
     total_variable.execute(query)
     result = total_variable.fetchone()  # Utiliser fetchone() au lieu de fetchall()
     if result:
-        print(result[0])
         return result[0]  # Retourner le premier (et seul) élément du tuple
     return 0  # Retourner 0 si aucun résultat n'est trouvé   
 
@@ -101,11 +99,10 @@ def create_home_frame(root):
     cards_container1.pack(pady=20,fill='x',padx=10)
     
     connect_db()
-    prods= fetch_total('product',product_total)
-    categs = fetch_total('category',category_total)
-    inventories = fetch_total('inventorie',product_total)
-    suppliers = fetch_total('supplier',supplier_total)
-    # print(prods,categs,suppliers)
+    prods= fetch_total('products',product_total)
+    # categs = fetch_total('product_categories',category_total)
+    # inventories = fetch_total('inventorie',product_total)
+    # suppliers = fetch_total('suppliers',supplier_total)
     # Données des cartes
     card_data = [
         ("الفواتير اليوم", "0",'#08fbfb'),

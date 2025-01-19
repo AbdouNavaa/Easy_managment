@@ -14,7 +14,6 @@ def connect_db():
         connect = pymysql.connect(host='localhost', user='root', password='Azerty2024', database='easy_db')
         my_cursor = connect.cursor()
         customers = connect.cursor()
-        print('Connected to the database')
         return connect
     except Exception as e:
         messagebox.showerror('Connection Failed', str(e))
@@ -123,7 +122,6 @@ def open_add_window(refresh_callback):
                     # add_window.destroy()
             except Exception as e:
                 messagebox.showerror('Error', str(e))
-            # print(user)
             
 
     add_button = ctk.CTkButton(
@@ -142,7 +140,6 @@ def open_update_window(customer, update_callback):
     # update_window.pack()
     update_window.title("تعديل")
 
-    print("customer", customer)
     custom=fetch_customer(customer[0])
     font_arial_title =("Arial", 16,'bold')
     font_arial =("Arial", 14)
@@ -192,7 +189,6 @@ def open_update_window(customer, update_callback):
     create_label(labels_frame,"الحالة").pack(ipady=10 ,pady=5, fill='x',side='left')
     is_active = ['0-غير مفعل','1-مفعل']
     default_value = is_active[1] if custom[7] == 1 else is_active[0]
-    print('default_value', default_value)
     # Create a StringVar to hold the selected value
     is_active_var = tk.StringVar(value=default_value)
 
@@ -235,15 +231,12 @@ def open_update_window(customer, update_callback):
 def fetch_drop(total_variable,myList):
     query = f'SELECT * FROM customers'
     total_variable.execute(query)
-    # print('ffdfd:', total_variable.fetchall())
     result = total_variable.fetchall()  # Utiliser fetchone() au lieu de fetchall()
     # if result:
     for variable in result:
         
-        print(variable[1])
         myList.append(f'{variable[0]}-{variable[1]}')
         # return variable[1]  # Retourner le premier (et seul) élément du tuple
-    print(myList)
     return myList  # Retourner 0 si aucun résultat n'est trouvé   
 
 def fetch_customer(prod_id):
@@ -256,12 +249,10 @@ def fetch_customer(prod_id):
     
     my_cursor.execute(query, (prod_id,))
     result = my_cursor.fetchone()
-    # print('Categ with Id', result)
     return result
 
 
 def delete_customer(customer_id, update_callback):
-    print('CatId', customer_id)
     connect_db()
     try:
         query = f"DELETE FROM customers WHERE id = {customer_id}"
@@ -278,9 +269,7 @@ def delete_customer(customer_id, update_callback):
 def show_customers_table(parent, limit=10):
     def load_page(page_num):
         nonlocal offset
-        print(page_num)
         offset = (page_num - 1) * limit
-        print(offset)
         update_table()
 
     def update_table():
@@ -289,7 +278,6 @@ def show_customers_table(parent, limit=10):
             widget.destroy()
 
         # Fetch new data
-        print("Offest: ",offset)
         data = fetch_customers(limit, offset)
 
         # Add data rows
@@ -440,36 +428,48 @@ def show_title_frame(parent, refresh_callback):
     title_frame = ctk.CTkFrame(parent, corner_radius=10, fg_color="transparent",)
     title_frame.pack(fill='x', padx=20, pady=5,)
 
-    font_arial_title = ('Arial',20,'bold')
-    font_arial = ('Arial',14,)
     title_label = ctk.CTkLabel(
         master=title_frame,
-        text="فائمة العملاء ",
-        font=font_arial_title,
-        # compound="right"
+        text="قائمة العملاء",
+        font=('Arial',20,'bold'),
+        # text_color="#0066cc"
+        compound="right"
     )
-    title_label.pack(side="right", padx=5, pady=5, ipadx=5, ipady=5)
     
-    # add 3 button 
+    title_label.pack(side="right",  pady=5, ipadx=5, ipady=5)
+
+    # button de refresh
+    image_path = os.path.join(os.path.dirname(__file__), "images", "refresh.png")
     
+    image = ctk.CTkImage(light_image=Image.open(image_path), size=(20, 20),)
+    refresh_button = ctk.CTkButton(
+        master=title_frame,
+        image=image,
+        text="تحديث",
+        fg_color="#f9fbfb",
+        hover_color="#f0f0f0",
+        font=('Arial',14,),
+        text_color="#333",
+        corner_radius=5,
+        command=refresh_callback
+    )
+    # add button 
     add_image_path = os.path.join(os.path.dirname(__file__), "images", "add.png")
-    
     add_image = ctk.CTkImage(light_image=Image.open(add_image_path), size=(15, 15),)
+    
     add_inventory_button = ctk.CTkButton(
         master=title_frame,
         image=add_image,
-        text=" اضافة عميل ",
-        font=font_arial,
-        width=40,
+        text="اضافة عميل",
+        font=('Arial',14,),
+        fg_color="#f9fbfb",
         text_color="#333",
-        fg_color="#fcfcfc",
         hover_color="#f0f0f0",
         corner_radius=5,
-        # border_color="#f0f0f0",
         command=lambda: open_add_window(refresh_callback)
     )
-    add_inventory_button.pack(side="left", padx=5, pady=5, ipadx=5, ipady=5)
-
+    add_inventory_button.pack(side="left", pady=5,)
+    refresh_button.pack(side="left",padx=5, pady=5)    
 justify = 'left'
 entry_widgets = []  # List to store all entry widgets
 label_widgets = []  # List to store all entry widgets

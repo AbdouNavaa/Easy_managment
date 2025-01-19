@@ -7,14 +7,26 @@ def connect_db():
         # create a connection object
         global connect
         global my_cursor
-        connect = pymysql.connect(host='localhost', user='root', password='Azerty2024', database='sms')
+        global suppliers
+        connect = pymysql.connect(host='localhost', user='root', password='Azerty2024', database='easy_db')
         my_cursor = connect.cursor()
+        suppliers = connect.cursor()
         # messagebox.showinfo('Connection Successful', 'Connected to the database')
-        print('Connected to the database')
         return connect
     except Exception as e:
         messagebox.showerror('Connection Failed', str(e))
         
+def fetch_drop(total_variable,myList):
+    query = f'SELECT * FROM accounts'
+    total_variable.execute(query)
+    result = total_variable.fetchall()  # Utiliser fetchone() au lieu de fetchall()
+    # if result:
+    for variable in result:
+        
+        myList.append(f'{variable[0]}-{variable[1]}')
+        # return variable[1]  # Retourner le premier (et seul) élément du tuple
+    return myList  # Retourner 0 si aucun résultat n'est trouvé   
+
 
 # import 
 
@@ -22,95 +34,145 @@ def create_add_supplier_frame(root):
     add_supplier_frame = ctk.CTkFrame(root, fg_color='#fff', border_width=1, border_color='#ddd')
     add_supplier_frame.pack(padx=400, pady=10, fill='y', ipady=100)
 
-    # Validation functions
-    def is_number(value_if_allowed):
-        """Allow only numbers."""
-        return value_if_allowed.isdigit() or value_if_allowed == ""
+    font_arial_title =("Arial", 16,'bold')
+    font_arial =("Arial", 14)   
+    global justify 
+    justify = 'left' 
 
-    def is_email(value_if_allowed):
-        """Simple validation to allow email format."""
-        allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@._-")
-        return all(char in allowed_chars for char in value_if_allowed)
+# direction btn
+    btns_frame = ctk.CTkFrame(add_supplier_frame,fg_color='transparent',width=400)
+    btns_frame.pack( ipady=10 , padx=20, pady=2)
+    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',hover_color='#eee',text_color='black',command=lambda:direction('Fr')).pack(pady=10,padx=(5,155),side='left')
+    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',hover_color='#eee',text_color='black',command=lambda:direction('Ar')).pack(pady=10,padx=(155,5),side='right')
 
-    def is_alpha(value_if_allowed):
-        """Allow only alphabetic characters."""
-        return value_if_allowed.isalpha() or value_if_allowed == ""
+    #name
+    name_label = create_label(add_supplier_frame,"اسم المورد",400)
+    name_label.pack(ipady=10, pady=1, padx=20)
+    
+    name_entry = create_entry(add_supplier_frame)
+    name_entry.pack(ipady=10, padx=20)
 
-    # Register validation commands
-    vcmd_number = root.register(is_number)
-    vcmd_email = root.register(is_email)
-    vcmd_alpha = root.register(is_alpha)
+    
+    #phone
+    phone_label = create_label(add_supplier_frame,"رقم الهاتف",400)
+    phone_label.pack(ipady=10, pady=5, padx=20)
+    
+    phone_entry = create_entry(add_supplier_frame)
+    phone_entry.pack(ipady=10 , padx=20)
+    
+    
+    #email
+    email_label = create_label(add_supplier_frame,"البريد الالكتروني",400)
+    email_label.pack(ipady=10, pady=5, padx=20)
+    
+    email_entry = ctk.CTkEntry(add_supplier_frame, font=font_arial,
+    fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,width=400)
+    email_entry.pack(ipady=10 , padx=20)
+    
+    #address
+    address_label = create_label(add_supplier_frame,"العنوان",400)
+    address_label.pack(ipady=10, pady=5, padx=20)
+    
+    address_entry = create_entry(add_supplier_frame)
+    address_entry.pack(ipady=10 , padx=20)
+    
+    # labels frame
+    labs_frame = ctk.CTkFrame(add_supplier_frame,fg_color='transparent',width=400)
+    labs_frame.pack( ipady=10 , padx=20, pady=2)
+    
+    # entries frame
+    entries_frame = ctk.CTkFrame(add_supplier_frame,fg_color='transparent',width=400)
+    entries_frame.pack( ipady=10 , padx=20, pady=2)
+    
+    # credit limit
+    credit_label = create_label(labs_frame,"الحد",200)
+    credit_label.pack(ipady=10 ,pady=5, padx=(0,2),side='right')
+    
+    credit_limit = ctk.CTkEntry(entries_frame, font=font_arial, 
+        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right',width=200)
+    credit_limit.pack(ipady=10 , padx=2,side='right')
+    
+    # account_id 
+    connect_db()
+    list_of_suppliers = []
+    fetch_drop(suppliers, list_of_suppliers)
 
-    # Page Title
-    title_label = ctk.CTkLabel(
-        add_supplier_frame, text="مورد إضافة", bg_color="#fff", 
-        font=('Arial', 20, 'bold'), anchor='center'
+    account_label = create_label(labs_frame,"الحساب",200)
+    account_label.pack(ipady=10,pady=5 , padx=(2,0),side='left')
+
+    account_id = ctk.CTkOptionMenu(
+        entries_frame,values=list_of_suppliers,anchor='center',
+        text_color="#333",dropdown_fg_color="#fff",
+        width=200,
+        font=font_arial,
+        button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
     )
-    title_label.pack(fill='x', padx=20, pady=(10, 1))
+    account_id.pack(ipady=10 , padx=2,side='left')
+    # Bouton pour sauvegarder les modifications
+    def save_changes():
+        name = name_entry.get()
+        phone = phone_entry.get()
+        email = email_entry.get()
+        address = address_entry.get()
+        credit = credit_limit.get()
+        account = account_id.get()[0]        
+        
+        try:
+            connect_db()
+        
+            query = 'insert into suppliers (name,phone,email,address,credit_limit,account_id) values(%s,%s,%s,%s,%s,%s)'
+            my_cursor.execute(query,(name,phone,email,address,credit,account))
+            connect.commit()
+            messagebox.showinfo('Success', 'supplier added successfully')
+            refresh_callback()
+            
+            result = messagebox.askyesno('supplier added successfully', 'do you want to clean the form?' , parent=add_supplier_frame)
+            if result == True:
+                name_entry.delete(0,tk.END)
+                phone_entry.delete(0, tk.END)
+                email_entry.delete(0, tk.END)
+                address_entry.delete(0, tk.END) 
+                credit_limit.delete(0, tk.END)
+                # add_supplier_frame.destroy()  # Fermer la fenêtre de mise à jour
+                
+        except ValueError:
+            messagebox.showerror("Error", "Invalid data!")
+            return
 
-    # Input Fields
-    inputs = [
-        {"label": "المورد اسم", "type": "alpha", "key": "supplier_name"},
-        {"label": "المسؤول الشخص", "type": "alpha", "key": "responsable_name"},
-        {"label": "الهاتف رقم", "type": "number", "key": "phone"},
-        {"label": "البريد الالكتروني", "type": "email", "key": "email"},
-        {"label": "العنوان", "type": "text", "key": "address"},
-    ]
+    ctk.CTkButton(add_supplier_frame, text=" حفظ", command=save_changes).pack(pady=5,padx=20,fill='x',ipady=10)
 
-    entry_widgets = {}
-    for item in inputs:
-        label = ctk.CTkLabel(add_supplier_frame, text=item["label"], bg_color="white", anchor='e')
-        label.pack(fill='x', padx=20)
-
-        # Determine the validation function
-        if item["type"] == "number":
-            validate_command = vcmd_number
-        elif item["type"] == "alpha":
-            validate_command = vcmd_alpha
-        elif item["type"] == "email":
-            validate_command = vcmd_email
-        else:
-            validate_command = None
-
-        entry = ctk.CTkEntry(
-            add_supplier_frame, font=("times new roman", 14),
-            fg_color='#fff', border_width=1, border_color='#ddd', corner_radius=8, justify='right',
-            validate="key", validatecommand=(validate_command, "%P") if validate_command else None
-        )
-        entry.pack(fill='x', ipady=10, pady=10, padx=20)
-
-        entry_widgets[item["key"]] = entry
-
-    # Add Supplier Action
-    def add_suppliers():
-        data = {key: entry.get() for key, entry in entry_widgets.items()}
-        if any(not value for value in data.values()):
-            messagebox.showerror("Error", "Veuillez remplir tous les champs")
-        else:
-            try:
-                connect_db()
-                query = 'INSERT INTO supplier VALUES (NULL, %s, %s, %s, %s, %s)'
-                my_cursor.execute(query, (data["supplier_name"], data["responsable_name"], data["phone"], data["email"], data["address"]))
-                connect.commit()
-                messagebox.showinfo('Success', 'Fournisseur ajouté avec succès')
-
-                result = messagebox.askyesno('Fournisseur ajouté avec succès', 'Voulez-vous nettoyer le formulaire?', parent=add_supplier_frame)
-                if result:
-                    for entry in entry_widgets.values():
-                        entry.delete(0, tk.END)
-            except Exception as e:
-                messagebox.showerror('Error', str(e))
-
-    # Confirm Button
-    add_button = ctk.CTkButton(
-        add_supplier_frame,
-        text="تاكيد",
-        width=23,
-        command=add_suppliers
-    )
-    add_button.pack(pady=10, fill='x', padx=20, ipady=10)
 
     return add_supplier_frame
+
+justify = 'left'
+entry_widgets = []  # List to store all entry widgets
+label_widgets = []  # List to store all entry widgets
+
+def direction(dir):
+    global justify
+    if dir == 'Ar':
+        justify = 'right'
+    else:
+        justify = 'left'
+    update_entry_justification()
+
+def update_entry_justification():
+    for entry in entry_widgets:
+        if entry.winfo_exists():
+            entry.configure(justify=justify)
+
+# for entries
+def create_entry(parent):
+    font_arial =("Arial", 14)   
+    entry = ctk.CTkEntry(parent, justify=justify,font=font_arial, fg_color='#fff', border_width=1, border_color='#ddd', corner_radius=8, width=400)
+    entry_widgets.append(entry)
+    return entry
+
+# for labels
+def create_label(parent,text,wid):
+    label = ctk.CTkLabel(parent, bg_color='#f9f9f9', font=("Arial", 16,'bold'), anchor='center', text=text, width=wid)
+    label_widgets.append(label)
+    return label
 
 # window 
 # window = ctk.CTk(fg_color="#fff")

@@ -14,7 +14,6 @@ def connect_db():
         connect = pymysql.connect(host='localhost', user='root', password='Azerty2024', database='easy_db')
         my_cursor = connect.cursor()
         users = connect.cursor()
-        print('Connected to the database')
         return connect
     except Exception as e:
         messagebox.showerror('Connection Failed', str(e))
@@ -102,7 +101,6 @@ def open_update_window(user, update_callback):
     # update_window.pack()
     update_window.title("تعديل")
 
-    print("user", user)
     custom=fetch_user(user[0])
     font_arial_title =("Arial", 16,'bold')
     font_arial =("Arial", 14)
@@ -174,12 +172,10 @@ def fetch_user(prod_id):
     
     my_cursor.execute(query, (prod_id,))
     result = my_cursor.fetchone()
-    # print('Categ with Id', result)
     return result
 
 
 def delete_user(user_id, update_callback):
-    print('CatId', user_id)
     connect_db()
     try:
         query = f"DELETE FROM users WHERE id = {user_id}"
@@ -196,9 +192,7 @@ def delete_user(user_id, update_callback):
 def show_users_table(parent, limit=10):
     def load_page(page_num):
         nonlocal offset
-        print(page_num)
         offset = (page_num - 1) * limit
-        print(offset)
         update_table()
 
     def update_table():
@@ -207,7 +201,6 @@ def show_users_table(parent, limit=10):
             widget.destroy()
 
         # Fetch new data
-        print("Offest: ",offset)
         data = fetch_users(limit, offset)
 
         # Add data rows

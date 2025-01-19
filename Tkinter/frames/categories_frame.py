@@ -14,7 +14,6 @@ def connect_db():
         connect = pymysql.connect(host='localhost', user='root', password='Azerty2024', database='easy_db')
         my_cursor = connect.cursor()
         categories = connect.cursor()
-        print('Connected to the database')
         return connect
     except Exception as e:
         messagebox.showerror('Connection Failed', str(e))
@@ -116,7 +115,6 @@ def open_add_window(refresh_callback):
                     # add_window.destroy()
             except Exception as e:
                 messagebox.showerror('Error', str(e))
-            # print(user)
             
 
     add_button = ctk.CTkButton(
@@ -138,7 +136,6 @@ def open_update_window(category, update_callback):
     # update_window.pack()
     update_window.title("تعديل")
 
-    print("Category", category)
     categ=fetch_category(category[0])
     font_arial_title =("Arial", 16,'bold')
     font_arial =("Arial", 14)
@@ -196,9 +193,8 @@ def open_update_window(category, update_callback):
                 # If it's a string, parse it
                 created_at_entry.set_date(datetime.strptime(categ[4], '%Y-%m-%d %H:%M:%S').date())
         except ValueError as e:
-            print(f"Invalid date format: {categ[4]}, Error: {e}")
+            messagebox.showerror("Error", "Invalid date format: {categ[4]}, Error: {e}!")
 
-    # Create a button to clear the date
     clear_date_button = ctk.CTkButton(date_frame, text="Clear Date", text_color='black',
         width=100, height=30, command=lambda: created_at_entry.set_date(None), fg_color='#f9f9f9', hover_color='#f9f9f8', corner_radius=5)
     clear_date_button.pack(side='left')
@@ -214,7 +210,6 @@ def open_update_window(category, update_callback):
         try:
             connect_db()
             query = 'update product_categories set name=%s, description=%s, parent_id=%s, created_at=%s where id=%s'
-            print(id)
             my_cursor.execute(query, (name, description, category_id, created_at, id))
             connect.commit()
                 
@@ -231,15 +226,13 @@ def open_update_window(category, update_callback):
 def fetch_drop(total_variable,myList):
     query = f'SELECT * FROM product_categories'
     total_variable.execute(query)
-    # print('ffdfd:', total_variable.fetchall())
     result = total_variable.fetchall()  # Utiliser fetchone() au lieu de fetchall()
     # if result:
     for variable in result:
         
-        print(variable[1])
         myList.append(f'{variable[0]}-{variable[1]}')
         # return variable[1]  # Retourner le premier (et seul) élément du tuple
-    print(myList)
+    # print(myList)
     return myList  # Retourner 0 si aucun résultat n'est trouvé   
 
 def fetch_category(prod_id):
@@ -252,12 +245,10 @@ def fetch_category(prod_id):
     
     my_cursor.execute(query, (prod_id,))
     result = my_cursor.fetchone()
-    # print('Categ with Id', result)
     return result
 
 
 def delete_category(category_id, update_callback):
-    print('CatId', category_id)
     connect_db()
     try:
         query = f"DELETE FROM product_categories WHERE id = {category_id}"
@@ -274,9 +265,7 @@ def delete_category(category_id, update_callback):
 def show_categories_table(parent, limit=10):
     def load_page(page_num):
         nonlocal offset
-        print(page_num)
         offset = (page_num - 1) * limit
-        print(offset)
         update_table()
 
     def update_table():
@@ -285,7 +274,6 @@ def show_categories_table(parent, limit=10):
             widget.destroy()
 
         # Fetch new data
-        print("Offest: ",offset)
         data = fetch_categories(limit, offset)
 
         # Add data rows

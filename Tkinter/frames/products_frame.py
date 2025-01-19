@@ -54,9 +54,7 @@ def open_update_window(product, update_callback):
     update_window.title("تعديل ")
     
 
-    print("Product", product)
     prod = fetch_product(product[0])
-    print("Product with id", prod)
         # Créer un conteneur scrollable
     canvas = ctk.CTkCanvas(update_window, width=800, height=930)
     canvas.pack( fill="both", expand=True)
@@ -120,7 +118,6 @@ def open_update_window(product, update_callback):
 
     # Créez une variable Tkinter StringVar
     prod_categ = tk.StringVar(value=prod_categ_default)
-    print(prod_categ)
     category_entry = ctk.CTkOptionMenu(
         frame,values=list_of_categories,anchor='center',
         text_color="#333",dropdown_fg_color="#fff",
@@ -192,7 +189,8 @@ def open_update_window(product, update_callback):
                 # If it's a string, parse it
                 created_at_entry.set_date(datetime.strptime(prod[7], '%Y-%m-%d %H:%M:%S').date())
         except ValueError as e:
-            print(f"Invalid date format: {prod[7]}, Error: {e}")
+            messagebox.showerror("Error", "Invalid date format: {categ[4]}, Error: {e}!")
+            
 
     
     # code
@@ -295,7 +293,6 @@ def connect_db():
         categories = connect.cursor()
         warehouses = connect.cursor()
         suppliers = connect.cursor()
-        print('Connected to the database')
         return connect
     except Exception as e:
         messagebox.showerror('Connection Failed', str(e))
@@ -323,7 +320,6 @@ def fetch_product(prod_id):
     
     my_cursor.execute(query, (prod_id,))
     result = my_cursor.fetchone()
-    print('Prod with Id', result)
     return result
 
 def delete_product(product_id, update_callback):
@@ -343,7 +339,7 @@ def delete_product(product_id, update_callback):
 search_results = []
 offset = 0
 # Function to show products as a styled table with pagination
-def show_products_table(parent, limit=10):
+def show_products_table(parent, limit=10,is_admin=0):
     
     def load_page(page_num):
         nonlocal offset
@@ -352,7 +348,6 @@ def show_products_table(parent, limit=10):
 
     def update_table():
         global search_results
-        print("SR: ", search_results)
         # Si des résultats de recherche existent, les utiliser   
         if search_results:
             # Si les résultats de recherche sont non vides, appliquer le limit et offset
@@ -360,9 +355,9 @@ def show_products_table(parent, limit=10):
         else:
             # Sinon, récupérer les données avec le limit et offset par défaut
             data = fetch_products(limit, offset)
+            # print('data', data)
         
         # Rest of the code...
-        # print("data: " , data)
         # Vider les données actuelles du tableau
         for widget in data_frame.winfo_children():
             widget.destroy()
@@ -411,12 +406,15 @@ def show_products_table(parent, limit=10):
             )
             update_button.grid(row=0, column=1)
             delete_button = ctk.CTkButton(
-                buttons_frame, text="حذف", fg_color="#f03",
+                buttons_frame, text="حذف", 
+                fg_color="#f03" if is_admin else "#ccc",
+                text_color="#fff" if is_admin else "#111",
                 font=font_arial_btn,
+                state='normal' if is_admin == 1 else 'disabled',
                 width=62,
                 command=lambda row=row: delete_product(row[::-1][0], update_table)
             )
-            delete_button.grid(row=0, column=0, padx=5)
+            delete_button.grid(row=0, column=0, padx=5) if is_admin == 1 else delete_button.grid_remove()
     
     offset = 0
 
@@ -585,7 +583,6 @@ def refresh(refresh_callback):
     refresh_callback()
 def search(query,refresh_callback):
     global search_results  # Déclarer `search_results` comme global
-    print("Searching:", query)
     if not query:
         messagebox.showinfo("Warning", "Search input is empty!")
         search_results = []  # Vider les résultats si la recherche est vide
@@ -603,11 +600,9 @@ def search(query,refresh_callback):
         search_results = my_cursor.fetchall()  # Récupérer les résultats
         refresh_callback()  # Appeler la fonction de rafraîchissement pour afficher les nouvelles données
 
-    print(search_results)  # Afficher les résultats pour déboguer
 
 def search_by_category(query, refresh_callback, ):
     global search_results  # Déclarer `search_results` comme global
-    print("Searching by category:", query)
     if not query:
         messagebox.showinfo("Warning", "Search input is empty!")
         search_results = []  # Vider les résultats si la recherche est vide
@@ -631,7 +626,6 @@ def search_by_category(query, refresh_callback, ):
 
 def search_by_warehouses(query, refresh_callback, ):
     global search_results  # Déclarer `search_results` comme global
-    print("Searching by warehouses:", query)
     if not query:
         messagebox.showinfo("Warning", "Search input is empty!")
         search_results = []  # Vider les résultats si la recherche est vide
@@ -654,29 +648,23 @@ def add_product():
 def fetch_all(table_name,total_variable,myList):
     query = f'SELECT * FROM {table_name}'
     total_variable.execute(query)
-    # print('ffdfd:', total_variable.fetchall())
     result = total_variable.fetchall()  # Utiliser fetchone() au lieu de fetchall()
     # if result:
     for variable in result:
         
-        print(variable[1])
         myList.append(variable[1])
         # return variable[1]  # Retourner le premier (et seul) élément du tuple
-    print(myList)
     return myList  # Retourner 0 si aucun résultat n'est trouvé   
 
 def fetch_drop(table_name,total_variable,myList):
     query = f'SELECT * FROM {table_name}'
     total_variable.execute(query)
-    # print('ffdfd:', total_variable.fetchall())
     result = total_variable.fetchall()  # Utiliser fetchone() au lieu de fetchall()
     # if result:
     for variable in result:
         
-        print(variable[1])
         myList.append(f'{variable[0]}-{variable[1]}')
         # return variable[1]  # Retourner le premier (et seul) élément du tuple
-    print(myList)
     return myList  # Retourner 0 si aucun résultat n'est trouvé   
 
 
@@ -751,23 +739,24 @@ def show_title_frame(parent, ):
 
 
 # Function to create the products frame
-def create_products_frame(root):
+def create_products_frame(root,user):
     products_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
 
     show_title_frame(products_frame)
     # search_frame(products_frame)
+    print('Ahmed:',user)
 
-    show_products_table(products_frame)
+    show_products_table(products_frame,is_admin=user[4])
     return products_frame
 
 
-window = ctk.CTk(fg_color="#fff")
-window.title('customtkinter app')
-window.geometry('1200x550')
-window.state('zoomed')
+# window = ctk.CTk(fg_color="#fff")
+# window.title('customtkinter app')
+# window.geometry('1200x550')
+# window.state('zoomed')
 
-products_frame = create_products_frame(window)
-products_frame.pack(fill='both', expand=True)
+# products_frame = create_products_frame(window)
+# products_frame.pack(fill='both', expand=True)
 
-# run
-window.mainloop()
+# # run
+# window.mainloop()

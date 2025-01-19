@@ -1,108 +1,145 @@
-from tkinter import *
-from tkinter import messagebox, ttk
-from ttkthemes import ThemedTk
-from PIL import Image, ImageTk  # Pour charger et manipuler les images
+import customtkinter as ctk
+import tkinter as tk
+from tkinter import messagebox
 import pymysql
+import bcrypt
 
-# Fonction pour valider les informations de connexion
+# === Connexion à la base de données ===
 def connect_db():
     try:
-        # create a connection object
         global connect
         global my_cursor
-        connect = pymysql.connect(host='localhost', user='root', password='Azerty2024', database='sms')
+        connect = pymysql.connect(host='localhost', user='root', password='Azerty2024', database='easy_db')
         my_cursor = connect.cursor()
         print('Connected to the database')
-        return connect
     except Exception as e:
         messagebox.showerror('Connection Failed', str(e))
 
-def login():
+# === Fonction de Connexion ===
+def login_action(login_window):
     username = username_entry.get()
     password = password_entry.get()
 
     if username == "" or password == "":
         messagebox.showerror("Error", "Please fill all the fields")
-    else:
+        return
+
+    try:
         connect_db()
-        query = 'SELECT * FROM user WHERE name=%s AND password=%s'
-        user = my_cursor.execute(query, (username, password))
-        print(user)
 
-    if user == 1:
-        messagebox.showinfo("Login Successful", f"Welcome! {username}")
-        main_window.destroy()
-        import home  # Exemple : changez à votre convenance
+        # Rechercher l'utilisateur par nom d'utilisateur
+        query = 'SELECT * FROM users WHERE username=%s'
+        my_cursor.execute(query, (username,))
+        result = my_cursor.fetchone()  # Récupère le hash du mot de passe
+
+        if result:
+            print(result)
+            stored_hashed_password = result[3]
+
+            # Comparer les mots de passe
+            if bcrypt.checkpw(password.encode('utf-8'), stored_hashed_password.encode('utf-8')):
+                messagebox.showinfo("Login Successful", f"Welcome! {username}")
+                login_window.destroy()  # Détruire la fenêtre de login
+                import home
+                home.launch_main_window(result)
+                launch_main_window(result)  # Lancer l'interface principale
+            else:
+                messagebox.showerror("Login Failed", "Invalid Username or Password")
+        else:
+            messagebox.showerror("Login Failed", "User not found")
+
+    except Exception as e:
+        messagebox.showerror('Error', str(e))
+
+justify = 'left'
+entry_widgets = []  # List to store all entry widgets
+label_widgets = []  # List to store all entry widgets
+
+def direction(dir):
+    global justify
+    if dir == 'Ar':
+        justify = 'right'
     else:
-        messagebox.showerror("Login Failed", "Invalid Username or Password")
+        justify = 'left'
+    update_entry_justification()
 
-# Fenêtre principale
-main_window = ThemedTk()
-main_window.get_themes()
-main_window.set_theme('arc')
-main_window.state('zoomed')
-main_window.resizable(True, True)
-main_window.title("تسجيل الدخول")
+def update_entry_justification():
+    for entry in entry_widgets:
+        if entry.winfo_exists():
+            entry.configure(justify=justify)
 
-# Charger l'image de fond
-bg_image_path = "./assets/blanch_bg1.jpg"
-try:
-    bg_image = Image.open(bg_image_path)
-    bg_image = bg_image.resize((main_window.winfo_screenwidth(), main_window.winfo_screenheight()), Image.ANTIALIAS)
-    bg_photo = ImageTk.PhotoImage(bg_image)
-    bg_label = Label(main_window, image=bg_photo)
-    bg_label.place(relwidth=1, relheight=1)
-except Exception as e:
-    print(f"Erreur lors du chargement de l'image de fond : {e}")
+# for entries
+def create_entry(parent,width=400):
+    entry = ctk.CTkEntry(parent, justify=justify,font=("Arial", 14), fg_color='#fff', 
+                        border_width=1, border_color='#ddd', corner_radius=8, width=width)
+    entry.pack(ipady=10 , padx=20)
+    entry_widgets.append(entry)
+    return entry
 
-# Style pour ttk.Frame
-style = ttk.Style()
-style.configure("Login.TFrame", background="white", borderwidth=1, relief="ridge")
+# for labels
+def create_label(parent,text,wid=200):
+    label = ctk.CTkLabel(parent, bg_color='#f9f9f9', font=("Arial", 16,'bold'), anchor='center', text=text, width=wid)
+    label_widgets.append(label)
+    return label
 
-# Cadre pour le formulaire de connexion
-login_frame = ttk.Frame(main_window, style="Login.TFrame", width=600, height=700, padding=70)
-login_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-# Titre de la page
-title_label = ttk.Label(login_frame, text="تسجيل الدخول", background="white", foreground="#333", font=('Arial', 20, 'bold'))
-title_label.grid(row=0, column=1, pady=10, sticky=N)
 
-# Champ de nom d'utilisateur
-username_label = ttk.Label(login_frame, text="اسم المستخدم", background="white")
-username_label.grid(row=1, column=1, pady=10, sticky=E)
-username_entry = ttk.Entry(login_frame, font=("times new roman", 14), width=30, state="normal")
-username_entry.grid(row=2, column=1, pady=10, padx=10, ipady=7)
 
-# Champ de mot de passe
-password_label = ttk.Label(login_frame, text="كلمة المرور", background="white")
-password_label.grid(row=3, column=1, pady=10, sticky=E)
-password_entry = ttk.Entry(login_frame, font=("times new roman", 14), width=30, show="*")
-password_entry.grid(row=4, column=1, pady=10, padx=10, ipady=7)
+# === Création de la fenêtre de connexion ===
+def launch_login_window():
+    login_window = ctk.CTk(fg_color="#fff")
+    login_window.title("تسجيل الدخول")
+    login_window.state("zoomed")
+    # login_window.resizable(False, False)
 
-# Bouton de connexion
-login_button = Button(
-    login_frame,
-    text="دخول",
-    font=("Helvetica", 14, "bold"),
-    bg="#001",
-    fg="white",
-    activebackground="white",
-    activeforeground="black",
-    cursor="hand2",
-    command=login,
-    width=23,
-)
-login_button.grid(row=5, column=1, columnspan=3, pady=20)
+    global username_entry, password_entry  # Pour l'utiliser dans login_action
+    # Création du frame
+    login_frame = ctk.CTkFrame(login_window, fg_color='#fff', border_width=1, border_color='#ddd')
+    login_frame.pack(padx=400,pady=100,ipady=30,)
+    
+    font_arial_title =("Arial", 16,'bold')
+    font_arial =("Arial", 14)
+    global justify 
+    justify = 'left' 
 
-# Pied de page
-footer_label = Label(
-    main_window,
-    text="© 2024 MyApp. All rights reserved.",
-    font=("Helvetica", 10),
-    bg="white",
-    fg="#666",
-)
-footer_label.place(relx=0.5, rely=0.95, anchor=CENTER)
+    # direction btn
+    btns_frame = ctk.CTkFrame(login_frame,fg_color='transparent',width=400)
+    btns_frame.pack( ipady=10 , padx=20, pady=10)
+    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',hover_color='#fff',text_color='black',command=lambda:direction('Fr')).pack(pady=1,padx=(5,155),side='left')
+    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',hover_color='#fff',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
+    # name 
+    create_label(login_frame,"اسم المستخدم").pack(ipady=10 ,pady=10, padx=20,fill='x')
+    username_entry = create_entry(login_frame)
+    
+    
+    # password_hash
+    create_label(login_frame,"كلمة المرور").pack(ipady=10 ,pady=10, padx=20,fill='x')
+    password_entry = create_entry(login_frame)
+    
+    # check box for remember me
+    # check_frame = ctk.CTkFrame(login_frame,fg_color='transparent')
+    # check_frame.pack(ipady=10, padx=20, pady=10,fill='x')
+    
+    # remember_me_var = tk.IntVar()
+    # remember_me_check_box = ctk.CTkCheckBox(check_frame, text="", variable=remember_me_var,border_color='#f0f0f0',checkmark_color='blue',
+    #                                     font=('Arial',16),fg_color='#eee',hover_color='#eee',)
+    # remember_me_check_box.pack(pady=10, padx=2,side='right',fill='x',anchor='e')
+    
+    # label = ctk.CTkLabel(check_frame,text='تذكرني', font=('Arial',16),anchor='e',fg_color='#e11')
+    # label.pack(pady=10, padx=2,side='right',fill='x')
+    
+    add_button = ctk.CTkButton(
+        login_frame,
+        font=font_arial_title,
+        text="تسجيل الدخول",
+        width=400,
+        command=lambda: login_action(login_window),
+    )
+    add_button.pack(pady=20,padx=20,ipady=10)# Fonction pour afficher la fenêtre de mise à jour
 
-connect_db()
-main_window.mainloop()
+    # Afficher la fenêtre de connexion
+    login_window.mainloop()
+
+# === Exécution de l'application ===
+if __name__ == "__main__":
+    launch_login_window()

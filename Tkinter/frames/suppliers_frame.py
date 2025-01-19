@@ -16,7 +16,6 @@ def connect_db():
         connect = pymysql.connect(host='localhost', user='root', password='Azerty2024', database='easy_db')
         my_cursor = connect.cursor()
         suppliers = connect.cursor()
-        print('Connected to the database')
         return connect
     except Exception as e:
         messagebox.showerror('Connection Failed', str(e))
@@ -34,9 +33,7 @@ def fetch_suppliers(limit=10, offset=0):
 def show_suppliers_table(parent, limit=10):
     def load_page(page_num):
         nonlocal offset
-        print('PageNum',page_num)
         offset = (page_num - 1) * limit
-        print(offset)
         update_table()
 
     def update_table():
@@ -45,7 +42,6 @@ def show_suppliers_table(parent, limit=10):
             widget.destroy()
 
         # Fetch new data
-        print("Offest: ",offset)
         data = fetch_suppliers(limit, offset)
 
         # Add data rows
@@ -335,7 +331,6 @@ def open_update_window(supplier, update_callback):
     # update_window.pack()
     update_window.title("تعديل المورد")
 
-    print("supplier", supplier)
     supp=fetch_supplier(supplier[0])
     
     font_arial_title =("Arial", 16,'bold')
@@ -343,13 +338,13 @@ def open_update_window(supplier, update_callback):
     global justify 
     justify = 'left' 
 
-# direction btn
+    # direction btn
     btns_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
     btns_frame.pack( ipady=10 , padx=20, pady=2)
-    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Fr')).pack(pady=10,padx=(5,155),side='left')
-    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Ar')).pack(pady=10,padx=(155,5),side='right')
+    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',hover_color='#eee',text_color='black',command=lambda:direction('Fr')).pack(pady=10,padx=(5,155),side='left')
+    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',hover_color='#eee',text_color='black',command=lambda:direction('Ar')).pack(pady=10,padx=(155,5),side='right')
 
-#name
+    #name
     name_label = create_label(update_window,"اسم المورد",400)
     name_label.pack(ipady=10, pady=5, padx=20)
     
@@ -358,7 +353,7 @@ def open_update_window(supplier, update_callback):
     name_entry.pack(ipady=10, padx=20)
 
     
-#phone
+    #phone
     phone_label = create_label(update_window,"رقم الهاتف",400)
     phone_label.pack(ipady=10, pady=5, padx=20)
     
@@ -367,7 +362,7 @@ def open_update_window(supplier, update_callback):
     phone_entry.pack(ipady=10 , padx=20)
     
     
-#email
+    #email
     email_label = create_label(update_window,"البريد الالكتروني",400)
     email_label.pack(ipady=10, pady=5, padx=20)
     
@@ -376,7 +371,7 @@ def open_update_window(supplier, update_callback):
     email_entry.insert(0,supplier[4])
     email_entry.pack(ipady=10 , padx=20)
     
-#address
+    #address
     address_label = create_label(update_window,"العنوان",400)
     address_label.pack(ipady=10, pady=5, padx=20)
     
@@ -384,14 +379,14 @@ def open_update_window(supplier, update_callback):
     address_entry.insert(0, supplier[5])
     address_entry.pack(ipady=10 , padx=20)
     
-# labels frame
+    # labels frame
     labs_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
     labs_frame.pack( ipady=10 , padx=20, pady=2)
     
-# entries frame
+    # entries frame
     entries_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
     entries_frame.pack( ipady=10 , padx=20, pady=2)
-# credit limit
+    # credit limit
     credit_label = create_label(labs_frame,"الحد",200)
     credit_label.pack(ipady=10 ,pady=5, padx=(0,2),side='right')
     
@@ -399,7 +394,7 @@ def open_update_window(supplier, update_callback):
         fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,justify='right',width=200)
     credit_limit.insert(0, supplier[5])
     credit_limit.pack(ipady=10 , padx=2,side='right')
-# account_id 
+    # account_id 
     # category
     connect_db()
     list_of_suppliers = []
@@ -408,11 +403,10 @@ def open_update_window(supplier, update_callback):
     credit_label = create_label(labs_frame,"الحساب",200)
     credit_label.pack(ipady=10,pady=5 , padx=(2,0),side='left')
     
-    account_default =supp[8] if supp[8] else 'NULL'
+    account_default =f'numebe:{supp[8]}' if supp[8] else 'NULL'
 
-# Créez une variable Tkinter StringVar
+    # Créez une variable Tkinter StringVar
     account = tk.StringVar(value=account_default)
-    print(account)
     account_id = ctk.CTkOptionMenu(
         entries_frame,values=list_of_suppliers,anchor='center',
         text_color="#333",dropdown_fg_color="#fff",
@@ -423,7 +417,7 @@ def open_update_window(supplier, update_callback):
     )
     account_id.pack(ipady=10 , padx=2,side='left')
 
-# Bouton pour sauvegarder les modifications
+    # Bouton pour sauvegarder les modifications
     def save_changes():
         name = name_entry.get()
         phone = phone_entry.get()
@@ -457,25 +451,20 @@ def fetch_supplier(supplier_id):
     
     my_cursor.execute(query, (supplier_id,))
     result = my_cursor.fetchone()
-    # print('Categ with Id', result)
     return result
 def fetch_drop(total_variable,myList):
     query = f'SELECT * FROM accounts'
     total_variable.execute(query)
-    # print('ffdfd:', total_variable.fetchall())
     result = total_variable.fetchall()  # Utiliser fetchone() au lieu de fetchall()
     # if result:
     for variable in result:
         
-        print(variable[1])
         myList.append(f'{variable[0]}-{variable[1]}')
         # return variable[1]  # Retourner le premier (et seul) élément du tuple
-    print(myList)
     return myList  # Retourner 0 si aucun résultat n'est trouvé   
 
 
 def delete_supplier(supplier_id, update_callback):
-    print('SupId', supplier_id)
     connect_db()
     try:
         query = f"DELETE FROM suppliers WHERE id = {supplier_id}"
@@ -507,7 +496,7 @@ def show_title_frame(parent,refresh_callback ):
     
     title_label.pack(side="right",  pady=5, ipadx=5, ipady=5)
 
-# button de refresh
+    # button de refresh
     image_path = os.path.join(os.path.dirname(__file__), "images", "refresh.png")
     
     image = ctk.CTkImage(light_image=Image.open(image_path), size=(20, 20),)
@@ -522,7 +511,7 @@ def show_title_frame(parent,refresh_callback ):
         corner_radius=5,
         command=refresh_callback
     )
-# add button 
+    # add button 
     add_image_path = os.path.join(os.path.dirname(__file__), "images", "add.png")
     add_image = ctk.CTkImage(light_image=Image.open(add_image_path), size=(15, 15),)
     

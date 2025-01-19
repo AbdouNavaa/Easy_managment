@@ -12,23 +12,19 @@ def connect_db():
         my_cursor = connect.cursor()
         categories = connect.cursor()
         # messagebox.showinfo('Connection Successful', 'Connected to the database')
-        print('Connected to the database')
         return connect
     except Exception as e:
         messagebox.showerror('Connection Failed', str(e))
         
 def fetch_drop(total_variable,myList):
-    query = f'SELECT * FROM product_categories'
+    query = f'SELECT * FROM customers'
     total_variable.execute(query)
-    # print('ffdfd:', total_variable.fetchall())
     result = total_variable.fetchall()  # Utiliser fetchone() au lieu de fetchall()
     # if result:
     for variable in result:
         
-        print(variable[1])
         myList.append(f'{variable[0]}-{variable[1]}')
         # return variable[1]  # Retourner le premier (et seul) élément du tuple
-    print(myList)
     return myList  # Retourner 0 si aucun résultat n'est trouvé   
 
 from tkcalendar import DateEntry
@@ -53,12 +49,13 @@ def update_entry_justification():
 
 # for entries
 def create_entry(parent,width=400):
-    entry = ctk.CTkEntry(parent, justify=justify,font=("Arial", 14), fg_color='#fff', border_width=1, 
-                    border_color='#ddd', corner_radius=8, width=width)
+    entry = ctk.CTkEntry(parent, justify=justify,font=("Arial", 14), fg_color='#fff', 
+                        border_width=1, border_color='#ddd', corner_radius=8, width=width)
     entry.pack(ipady=10 , padx=20)
     entry_widgets.append(entry)
     return entry
 
+# for labels
 def create_label(parent,text,wid=200):
     label = ctk.CTkLabel(parent, bg_color='#f9f9f9', font=("Arial", 16,'bold'), anchor='center', text=text, width=wid)
     label_widgets.append(label)
@@ -159,9 +156,7 @@ def create_add_customer_frame(root):
                     # add_customer_frame.destroy()
             except Exception as e:
                 messagebox.showerror('Error', str(e))
-            # print(user)
             
-        
 
     add_button = ctk.CTkButton(
         add_customer_frame,
