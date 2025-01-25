@@ -15,14 +15,14 @@ from frames.customers_frame import create_customers_frame
 from frames.add_customer_frame import create_add_customer_frame
 from frames.users_frame import create_users_frame
 from frames.add_user_frame import create_add_user_frame
-
-from frames.invoices_frame import create_add_sale_frame, create_sales_frame
+from frames.invoices_frame import create_add_sale_frame, create_sales_frame,switch_frame
 from frames.invoice_details_frame import frame_principal
 # from frames.login_frame import create_login_frame
 from tkinter import messagebox
 import pymysql
 import bcrypt
 import os
+
 def connect_db():
     try:
         global connect
@@ -105,13 +105,14 @@ class App(ctk.CTk):
         self.frames["Customers"] = create_customers_frame(self.container,user)
         self.frames["Users"] = create_users_frame(self.container,user)
         self.frames["Sales"] = create_sales_frame(self.container,user,)
+        # self.frames["AddSale"] = switch_frame(self.container,create_sales_frame,user)
         
         self.frames["AddProduct"] = create_add_product_frame(self.container)
         self.frames["AddProductCategory"] = create_add_category_frame(self.container)
         self.frames["AddSupplier"] = create_add_supplier_frame(self.container)
         self.frames["AddCustomer"] = create_add_customer_frame(self.container)
         self.frames["AddUser"] = create_add_user_frame(self.container)
-        self.frames["AddSale"] = create_add_sale_frame(self.container,user)
+        # self.frames["AddSale"] = switch_frame(self.container,create_add_sale_frame,user)
         self.frames['SaleItems'] = frame_principal(self.container)
         
 
@@ -127,7 +128,7 @@ class App(ctk.CTk):
             if name == frame_name:
                 if name == "AddProduct" or name == "AddProductCategory" or name == "AddSupplier" or name == "AddCustomer":
                     frame.pack(fill="both", expand=True, padx=400, pady=10, ipady=100)
-                elif name == "AddUser" or name=="AddSale" or name == "Login":
+                elif name == "AddUser" or name == "Login":
                     frame.pack(fill="x", expand=True, padx=400, pady=10, ipady=50)
                 else:
                     frame.pack(fill="both", expand=True)
@@ -189,13 +190,9 @@ class App(ctk.CTk):
         inventory_btn.pack(side="right", padx=1, pady=5)
 
         # Sales button
-        sale_dropdown = self.create_dropdown(self.navbar,'المبيعات', [
-            ("عرض المبيعات", lambda: self.show_frame("Sales")),
-            ("إضافة الفاتورة", lambda: self.show_frame("AddSale"))
-        ])
-        sale_dropdown.pack(side="right", padx=1, pady=5)
-        # sales_btn = ctk.CTkButton(self.navbar, text="المبيعات", command=lambda: self.show_frame("Sales"), **button_style,width=50)
-        # sales_btn.pack(side="right", padx=1, pady=5)
+        # sale_dropdown.pack(side="right", padx=1, pady=5)
+        sales_btn = ctk.CTkButton(self.navbar, text="المبيعات", command=lambda: self.show_frame("Sales"), **button_style,width=50)
+        sales_btn.pack(side="right", padx=1, pady=5)
 
         # Customers dropdown
         customer_dropdown = self.create_dropdown(self.navbar,'العملاء', [
