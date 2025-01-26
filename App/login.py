@@ -39,7 +39,9 @@ def login_action(login_window):
             # Comparer les mots de passe
             if bcrypt.checkpw(password.encode('utf-8'), stored_hashed_password.encode('utf-8')):
                 messagebox.showinfo("Login Successful", f"Welcome! {username}")
-                login_window.destroy()  # Détruire la fenêtre de login
+                # import time as time
+                # time.sleep(5)  # Attendre 1 seconde avant de lancer l'interface principale
+                login_window.destroy()  # Détruire la fenêtre de login aprss  quelques secondes
                 import home
                 home.launch_main_window(result)
                 launch_main_window(result)  # Lancer l'interface principale
@@ -91,7 +93,12 @@ def launch_login_window():
     login_window.title("تسجيل الدخول")
     login_window.state("zoomed")
     # login_window.resizable(False, False)
-
+    navbar = ctk.CTkFrame(login_window, fg_color="#333", corner_radius=0)
+    navbar.pack(side="top", fill="x")
+    button_style = {"font": ("Arial", 16), "fg_color": "#333", "text_color": "white", "hover_color": "#333"}
+    # logo button
+    logo_btn = ctk.CTkButton(navbar, text="Easy", **button_style,width=140,anchor='w')
+    logo_btn.pack(side="right", padx=1, pady=5)
     global username_entry, password_entry  # Pour l'utiliser dans login_action
     # Création du frame
     login_frame = ctk.CTkFrame(login_window, fg_color='#fff', border_width=1, border_color='#ddd')

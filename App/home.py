@@ -15,7 +15,8 @@ from frames.customers_frame import create_customers_frame
 from frames.add_customer_frame import create_add_customer_frame
 from frames.users_frame import create_users_frame
 from frames.add_user_frame import create_add_user_frame
-from frames.invoices_frame import create_add_sale_frame, create_sales_frame,switch_frame
+from frames.invoices_frame import  create_sales_frame
+from frames.new_invoice import create_add_sale_frame
 from frames.invoice_details_frame import frame_principal
 # from frames.login_frame import create_login_frame
 from tkinter import messagebox
@@ -112,7 +113,7 @@ class App(ctk.CTk):
         self.frames["AddSupplier"] = create_add_supplier_frame(self.container)
         self.frames["AddCustomer"] = create_add_customer_frame(self.container)
         self.frames["AddUser"] = create_add_user_frame(self.container)
-        # self.frames["AddSale"] = switch_frame(self.container,create_add_sale_frame,user)
+        self.frames["AddSale"] = create_add_sale_frame(self.container,user)
         self.frames['SaleItems'] = frame_principal(self.container)
         
 
@@ -190,9 +191,15 @@ class App(ctk.CTk):
         inventory_btn.pack(side="right", padx=1, pady=5)
 
         # Sales button
-        # sale_dropdown.pack(side="right", padx=1, pady=5)
-        sales_btn = ctk.CTkButton(self.navbar, text="المبيعات", command=lambda: self.show_frame("Sales"), **button_style,width=50)
-        sales_btn.pack(side="right", padx=1, pady=5)
+        
+        sale_dropdown = self.create_dropdown(self.navbar,'المبيعات', [
+            ("عرض الفواتير", lambda: self.show_frame("Sales")),
+            ("إضافة فاتورة", lambda: self.show_frame("AddSale"))
+        ])
+        # customer_dropdown.pack(side="right", padx=1, pady=5)
+        sale_dropdown.pack(side="right", padx=1, pady=5)
+        # sales_btn = ctk.CTkButton(self.navbar, text="المبيعات", command=lambda: self.show_frame("Sales"), **button_style,width=50)
+        # sales_btn.pack(side="right", padx=1, pady=5)
 
         # Customers dropdown
         customer_dropdown = self.create_dropdown(self.navbar,'العملاء', [
