@@ -9,7 +9,8 @@ from frames.add_category_frame import create_add_category_frame
 from frames.add_supplier_frame import create_add_supplier_frame
 
 from frames.suppliers_frame import create_suppliers_frame
-from frames.inventory_frame import create_inventory_frame
+from frames.inventory_frame import create_warehouses_frame
+from frames.add_inventory import create_add_warehouse_frame
 
 from frames.customers_frame import create_customers_frame
 from frames.add_customer_frame import create_add_customer_frame
@@ -52,9 +53,9 @@ def update_entry_justification():
             entry.configure(justify=justify)
 
 # for entries
-def create_entry(parent,width=400):
+def create_entry(parent,width=400,show=''):
     entry = ctk.CTkEntry(parent, justify=justify,font=("Arial", 14), fg_color='#fff',
-                         border_width=1, border_color='#ddd', corner_radius=8, width=width)
+                         border_width=1, border_color='#ddd', corner_radius=2, width=width,show= show)
     entry.pack(ipady=10 , padx=20)
     entry_widgets.append(entry)
     return entry
@@ -102,7 +103,7 @@ class App(ctk.CTk):
         self.frames["Products"] = create_products_frame(self.container,user)
         self.frames["Categories"] = create_categories_frame(self.container,user)
         self.frames["Suppliers"] = create_suppliers_frame(self.container,user)
-        self.frames["Inventory"] = create_inventory_frame(self.container,user)
+        self.frames["Inventory"] = create_warehouses_frame(self.container,user)
         self.frames["Customers"] = create_customers_frame(self.container,user)
         self.frames["Users"] = create_users_frame(self.container,user)
         self.frames["Sales"] = create_sales_frame(self.container,user,)
@@ -114,6 +115,7 @@ class App(ctk.CTk):
         self.frames["AddCustomer"] = create_add_customer_frame(self.container)
         self.frames["AddUser"] = create_add_user_frame(self.container)
         self.frames["AddSale"] = create_add_sale_frame(self.container,user)
+        self.frames['AddInventory'] = create_add_warehouse_frame(self.container)
         self.frames['SaleItems'] = frame_principal(self.container)
         
 
@@ -129,7 +131,7 @@ class App(ctk.CTk):
             if name == frame_name:
                 if name == "AddProduct" or name == "AddProductCategory" or name == "AddSupplier" or name == "AddCustomer":
                     frame.pack(fill="both", expand=True, padx=400, pady=10, ipady=100)
-                elif name == "AddUser" or name == "Login":
+                elif name == "AddUser" or name == "Login" or name == "AddInventory":
                     frame.pack(fill="x", expand=True, padx=400, pady=10, ipady=50)
                 else:
                     frame.pack(fill="both", expand=True)
@@ -187,9 +189,13 @@ class App(ctk.CTk):
         categories_dropdown.pack(side="right", padx=1, pady=5)
 
         # Inventory button
-        inventory_btn = ctk.CTkButton(self.navbar, text="المخزون", command=lambda: self.show_frame("Inventory"), **button_style,width=50)
-        inventory_btn.pack(side="right", padx=1, pady=5)
-
+        # inventory_btn = ctk.CTkButton(self.navbar, text="المخزون", command=lambda: self.show_frame("Inventory"), **button_style,width=50)
+        # inventory_btn.pack(side="right", padx=1, pady=5)
+        inventory_dropdown = self.create_dropdown(self.navbar,'المخازن', [
+            ("عرض المخازن", lambda: self.show_frame("Inventory")),
+            ("إضافة مخزن", lambda: self.show_frame("AddInventory"))
+        ])
+        inventory_dropdown.pack(side="right", padx=1, pady=5)
         # Sales button
         
         sale_dropdown = self.create_dropdown(self.navbar,'المبيعات', [
@@ -303,7 +309,7 @@ def create_login_frame(root,app):
     
     # password_hash
     create_label(login_frame,"كلمة المرور").pack(ipady=10 ,pady=10, padx=20,fill='x')
-    password_entry = create_entry(login_frame)
+    password_entry = create_entry(login_frame,show='*')
     # show='*'
     
     # global logged 
@@ -327,20 +333,20 @@ def create_login_frame(root,app):
                 # Connexion réussie
                 user_data = {'user': [user[1],user[2],user[4]], 'logged_in': True}  # Créez un dictionnaire pour stocker les données de l'utilisateur
                 save_user_data(user_data)  # Enregistrez les données dans un fichier JSON
-                messagebox.showinfo("Succès", f"Bienvenue {username}!")
+                messagebox.showinfo('نجاح', f' {username} مرحبا بك')
                 username_entry.delete(0,tk.END)
                 password_entry.delete(0,tk.END)
                 app.login(user)
             else:
-                messagebox.showerror("Erreur", "Nom d'utilisateur ou mot de passe incorrect.")
+                messagebox.showerror("خطأ", " اسم المستخدم او كلمة المرور غير صحيحة")
         except Exception as e:
-            messagebox.showerror("Erreur", f"Une erreur s'est produite : {str(e)}")    
+            messagebox.showerror("خطأ", f"حدث خطأ : {str(e)}")    
     add_button = ctk.CTkButton(
         login_frame,
         font=font_arial_title,
         text="تسجيل الدخول",
         width=400,
-        command=login_action,
+        command=login_action,corner_radius=2
     )
     add_button.pack(pady=20,padx=20,ipady=10)# Fonction pour afficher la fenêtre de mise à jour
 

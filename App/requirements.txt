@@ -1,0 +1,7 @@
+datetime
+tkcalendar
+PILLOW
+pymysql
+customtkinter
+pandas
+bcrypt
