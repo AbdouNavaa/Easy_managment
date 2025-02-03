@@ -1,6 +1,9 @@
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import Menu
+import json
+from tkinter import messagebox, filedialog
+from datetime import datetime
 from frames.home_frame import create_home_frame
 from frames.products_frame import create_products_frame
 from frames.categories_frame import create_categories_frame
@@ -107,7 +110,6 @@ class App(ctk.CTk):
         self.frames["Customers"] = create_customers_frame(self.container,user)
         self.frames["Users"] = create_users_frame(self.container,user)
         self.frames["Sales"] = create_sales_frame(self.container,user,)
-        # self.frames["AddSale"] = switch_frame(self.container,create_sales_frame,user)
         
         self.frames["AddProduct"] = create_add_product_frame(self.container)
         self.frames["AddProductCategory"] = create_add_category_frame(self.container)
@@ -165,12 +167,11 @@ class App(ctk.CTk):
     def create_navbar(self):
         button_style = {"font": ("Arial", 16), "fg_color": "#333", "text_color": "white", "hover_color": "#333"}
         # logo button
-        logo_btn = ctk.CTkButton(self.navbar, text="Easy", **button_style,width=140,anchor='w')
+        logo_btn = ctk.CTkButton(self.navbar, text="Easy",command=lambda: self.show_frame("Home"), **button_style,width=140,anchor='w')
         logo_btn.pack(side="right", padx=1, pady=5)
 
         # Home button
         self.home_btn = ctk.CTkButton(self.navbar, text="الرئيسية", command=lambda: self.show_frame("Home"), **button_style,width=90)
-        print('Im Logged in: ',load_user_data().get('logged_in'))
         self.home_btn.pack(side="right", padx=1, pady=5)
 
 
@@ -232,6 +233,14 @@ class App(ctk.CTk):
         settings_btn = ctk.CTkButton(self.navbar, text="الاعدادات",  **button_style,width=60)
         settings_btn.pack(side="right", padx=1, pady=5)
         
+            # Settings dropdown
+        # settings_dropdown = self.create_dropdown(self.navbar, 'الاعدادات', [
+        #     ("Sauvegarder la base de données", lambda: self.backup_database())  # Ajouter le bouton de sauvegarde
+        # ])
+        # settings_dropdown.pack(side="right", padx=1, pady=5)
+        
+        self.home_btn = ctk.CTkButton(self.navbar, text="النسخ الاحتياطي", command=lambda: export_to_sql(), **button_style,width=60)
+        self.home_btn.pack(side="right", padx=1, pady=5)
         
         # Logout button
         logout_btn = ctk.CTkButton(self.navbar, text="تسجيل الخروج", command=lambda: logout(self), **button_style,width=90)
@@ -264,8 +273,68 @@ class App(ctk.CTk):
         return dropdown
 
 
-import json
 
+def export_to_sql():
+    try:
+        # Demander à l'utilisateur de choisir un répertoire
+        backup_dir = filedialog.askdirectory(title="اختر مجلد لحفظ النسخة الاحتياطية")
+        
+        if not backup_dir:  # Si l'utilisateur annule
+            return
+        
+        # Générer un nom de fichier unique basé sur la date et l'heure
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_file = f"{backup_dir}/backup_{timestamp}.sql"  # Chemin complet du fichier
+        
+        # Connexion à la base de données
+        connect = pymysql.connect(
+            host='localhost',
+            user='root',
+            password='Azerty2024',
+            database='easy_db'
+        )
+        cursor = connect.cursor()
+        
+        # Ouvrir le fichier SQL en mode écriture
+        with open(backup_file, 'w', encoding='utf-8') as f:
+            # Récupérer la liste des tables
+            cursor.execute("SHOW TABLES")
+            tables = cursor.fetchall()
+            
+            # Exporter chaque table
+            for table in tables:
+                table_name = table[0]
+                
+                # Récupérer la structure de la table
+                cursor.execute(f"SHOW CREATE TABLE {table_name}")
+                create_table = cursor.fetchone()[1]
+                
+                # Écrire la commande CREATE TABLE dans le fichier
+                f.write(f"-- Structure de la table {table_name}\n")
+                f.write(f"{create_table};\n\n")
+                
+                # Récupérer les données de la table
+                cursor.execute(f"SELECT * FROM {table_name}")
+                rows = cursor.fetchall()
+                
+                if rows:
+                    # Écrire les commandes INSERT INTO dans le fichier
+                    f.write(f"-- Données de la table {table_name}\n")
+                    for row in rows:
+                        # Convertir les valeurs en chaînes de caractères
+                        values = ", ".join([f"'{str(value)}'" if value is not None else "NULL" for value in row])
+                        f.write(f"INSERT INTO {table_name} VALUES ({values});\n")
+                    f.write("\n")
+        
+        # Fermer la connexion à la base de données
+        connect.close()
+        
+        # Afficher un message de succès
+        messagebox.showinfo('نجاح في التصدير', f'تم تصدير قاعدة البيانات بنجاح في "{backup_file}".')
+    except Exception as e:
+        # Gérer les exceptions
+        messagebox.showerror("خطأ", f"حدث خطأ غير متوقع: {str(e)}")
+        
 def save_user_data(user_data):
     with open('user_data.json', 'w') as f:
         json.dump(user_data, f)
@@ -336,6 +405,7 @@ def create_login_frame(root,app):
                 messagebox.showinfo('نجاح', f' {username} مرحبا بك')
                 username_entry.delete(0,tk.END)
                 password_entry.delete(0,tk.END)
+                messagebox._show(' الرجاء الانتظار يتم تحديث البيانات')
                 app.login(user)
             else:
                 messagebox.showerror("خطأ", " اسم المستخدم او كلمة المرور غير صحيحة")
@@ -351,6 +421,7 @@ def create_login_frame(root,app):
     add_button.pack(pady=20,padx=20,ipady=10)# Fonction pour afficher la fenêtre de mise à jour
 
     return login_frame
+
 
 app = App()
 # login_frame = create_login_frame(app.container, app)

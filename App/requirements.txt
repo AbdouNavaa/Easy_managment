@@ -5,3 +5,6 @@ pymysql
 customtkinter
 pandas
 bcrypt
+sqlalchemy
+openpyxl
+mysqldump

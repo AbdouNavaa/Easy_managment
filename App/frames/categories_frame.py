@@ -429,7 +429,7 @@ def create_entry(parent):
 
 # for labels
 def create_label(parent,text):
-    label = ctk.CTkLabel(parent, bg_color='red', font=("Arial", 16,'bold'), anchor='center', text=text)
+    label = ctk.CTkLabel(parent, bg_color='#f9f9f9', font=("Arial", 16,'bold'), anchor='center', text=text)
     label_widgets.append(label)
     return label
 

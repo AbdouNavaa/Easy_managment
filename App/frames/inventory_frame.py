@@ -173,6 +173,7 @@ def fetch_warehouse(prod_id):
 def delete_warehouse(warehouse_id, update_callback):
     connect_db()
     try:
+        print('delete',warehouse_id)
         query = f"DELETE FROM warehouses WHERE id = {warehouse_id}"
         my_cursor.execute(query)
         connect.commit()

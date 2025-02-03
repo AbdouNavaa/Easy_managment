@@ -79,7 +79,7 @@ def create_label(parent,text):
 inv_data = []  # Change this to a list instead of a tuple
 total_amount = 0
 taxe = 15
-final_total = 0
+total_qty = 0
 def search_product(id):
     connect = connect_db()
     cursor = connect.cursor()
@@ -286,13 +286,13 @@ def create_add_sale_frame(root,user=None,sale=None):
         if result and float(quantity_entry.get()) > 0:
             global inv_data
             global total_amount
-            global final_total
+            global total_qty
             print('Result:', result)
 
             # Extraire les informations nécessaires du produit
             product_code = result[1]  # Supposons que le code produit est à l'index 1
             quantity = float(quantity_entry.get())
-            price = float(result[4])  # Supposons que le prix est à l'index 4
+            price = float(result[11])  # Supposons que le prix est à l'index 4
             total = quantity * price
             # total_amount += total  
 
@@ -312,8 +312,6 @@ def create_add_sale_frame(root,user=None,sale=None):
                 print('Im here',inv_data)
                 if isinstance(inv_data, tuple):
                     inv_data = list(inv_data)
-                # if inv_data != []:
-                # inv_data += [(product_code, quantity, price, total)]
                 # else:
                 inv_data.append((product_code,quantity, price, total))
 
@@ -344,14 +342,11 @@ def create_add_sale_frame(root,user=None,sale=None):
     title_label = ctk.CTkLabel(add_prod_sale_frame, text="المنتجات المضافة", font=('Ariel', 20, 'bold'))
     title_label.pack(pady=10)
     def recalculate_totals():
-        global total_amount, final_total
+        global total_amount, total_qty
 
         # Recalculer le montant total
         total_amount = sum(item[3] for item in inv_data)  # item[3] = total pour chaque ligne
-
-        # Calculer le total final en incluant les taxes
-        final_total = total_amount + (total_amount * taxe * 0.01)
-
+        total_qty = sum(item[1] for item in inv_data)
 
     global inv_data
     def update_table():
@@ -445,14 +440,11 @@ def create_add_sale_frame(root,user=None,sale=None):
         for widget in total_frame.winfo_children():
             widget.destroy()
 
-        ctk.CTkLabel(total_frame, text=": المجموع", font=('Arial', 15, 'bold')).pack(side='right', padx=20, pady=5)
-        ctk.CTkLabel(total_frame, text=round(total_amount, 2), font=('Arial', 15, 'bold')).pack(side='right', padx=(0, 130))
+        ctk.CTkLabel(total_frame, text=round(total_amount, 2), font=('Arial', 15, 'bold')).pack(side='left', expand=True)
+        ctk.CTkLabel(total_frame, text=": المجموع", font=('Arial', 15, 'bold')).pack(side='left', padx=20, pady=5)
 
-        ctk.CTkLabel(total_frame, text=": الضريبة", font=('Arial', 15, 'bold')).pack(side='right', padx=20, pady=5)
-        ctk.CTkLabel(total_frame, text=f"{taxe}%", font=('Arial', 15, 'bold')).pack(side='right', padx=(0, 130))
-
-        ctk.CTkLabel(total_frame, text=": الاجمالي", font=('Arial', 15, 'bold')).pack(side='right', padx=20, pady=5)
-        ctk.CTkLabel(total_frame, text=round(final_total, 2), font=('Arial', 15, 'bold')).pack(side='right', padx=(0, 130))
+        ctk.CTkLabel(total_frame, text=": الكمية", font=('Arial', 15, 'bold')).pack(side='right', padx=20, pady=5)
+        ctk.CTkLabel(total_frame, text=round(total_qty, 2), font=('Arial', 15, 'bold')).pack(side='right', expand=True)
 
     def add_invoice():
         global inv_data
@@ -468,8 +460,8 @@ def create_add_sale_frame(root,user=None,sale=None):
                     sale = search_sale(reference)
                     print("Product founded:", prod)
                     id = prod[0]
-                    query = "INSERT INTO sale_items (sale_id, product_id, quantity, discount, subtotal) VALUES (%s, %s, %s, %s, %s)"
-                    cursor.execute(query, (sale, id, item[1], taxe, item[3]))
+                    query = "INSERT INTO sale_items (sale_id, product_id, quantity, subtotal) VALUES ( %s, %s, %s, %s)"
+                    cursor.execute(query, (sale, id, item[1], item[3]))
                     
                     # Mettre à jour la quantité du produit
                     query = "UPDATE products SET quantity = quantity - %s WHERE id = %s"

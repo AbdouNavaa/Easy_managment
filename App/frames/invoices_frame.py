@@ -33,9 +33,8 @@ def fetch_sales(limit=10, offset=0):
     c.name,
     s.reference_number,
     s.payment_method,
+    sum(si.quantity),
     sum(si.subtotal),
-    si.discount,
-    sum(si.subtotal + si.subtotal * si.discount * 0.01),
     DATE(s.date)
     FROM 
     sales s 
@@ -43,6 +42,7 @@ def fetch_sales(limit=10, offset=0):
     LEFT JOIN sale_items si ON s.id = si.sale_id
     GROUP BY 
     s.id
+    order by (s.date)
     LIMIT {limit} OFFSET {offset}'''
     
     my_cursor.execute(query)
@@ -129,7 +129,7 @@ def show_sales_table(root,parent,user=None, limit=10,is_admin=1):
                     corner_radius=5,
                     width=100
                 )
-                label1.grid(row=row_index, column=8 if is_admin == 1 else 7, sticky="nsew", padx=5, pady=5)
+                label1.grid(row=row_index, column=7 if is_admin == 1 else 6, sticky="nsew", padx=5, pady=5)
                 
                 label.grid(row=row_index, column=col_index + 1 if is_admin == 1 else col_index, sticky="nsew", padx=5, pady=5)
 
@@ -184,13 +184,13 @@ def show_sales_table(root,parent,user=None, limit=10,is_admin=1):
     # Search Frame
     search_frame(root,parent, lambda: update_table(),offset)  # Appelle `update_table` comme callback
     # SELECT s.id,c.name,s.reference_number,s.payment_method,s.total_amount,s.discount,s.final_amount,s.date
-    columns = ('رقم القطعة ', 'اسم العميل ', 'رقم الفاتورة', 'طريقة الدفع', ' الاجمالي', ' الضريبة', 'المبلغ النهائي', 'التاريخ')
+    columns = ('رقم القطعة ', 'اسم العميل ', 'رقم الفاتورة', 'طريقة الدفع', ' الكمية',  'المبلغ النهائي', 'التاريخ')
     columns = columns[::-1]
 
     # Header frame
     header_frame = ctk.CTkFrame(parent, corner_radius=2, fg_color="#fff",border_width=1,border_color="#f0f0f0")
     header_frame.pack(fill='x', padx=20, pady=5)
-    header_frame.columnconfigure((0, 1, 2,3, 4, 5, 6,7,8), weight=1, uniform='a') if is_admin == 1 else header_frame.columnconfigure((0, 1, 2,3, 4, 5,6,7), weight=1, uniform='a')
+    header_frame.columnconfigure((0, 1, 2,3, 4, 5, 6,7), weight=1, uniform='a') if is_admin == 1 else header_frame.columnconfigure((0, 1, 2,3, 4, 5,6), weight=1, uniform='a')
     font_arial = ('Arial',14,'bold')
 
     # Add column headings
@@ -220,7 +220,7 @@ def show_sales_table(root,parent,user=None, limit=10,is_admin=1):
     # Data Frame
     data_frame = ctk.CTkFrame(parent, corner_radius=2,  fg_color="#fff",border_width=1,border_color="#f0f0f0")
     data_frame.pack(fill='both', expand=True, padx=20, pady=5)
-    data_frame.columnconfigure((0, 1, 2, 3, 4, 5, 6,7,8), weight=1, uniform='a') if is_admin == 1 else data_frame.columnconfigure((0, 1, 2,3, 4, 5,6,7), weight=1, uniform='a')
+    data_frame.columnconfigure((0, 1, 2, 3, 4, 5, 6,7), weight=1, uniform='a') if is_admin == 1 else data_frame.columnconfigure((0, 1, 2,3, 4, 5,6), weight=1, uniform='a')
 
     # Pagination Controls
     nav_frame = ctk.CTkFrame(parent, corner_radius=2,  fg_color="#fff",border_width=1,border_color="#f0f0f0")
@@ -395,7 +395,7 @@ def search_sale_item(id):
     """Afficher les articles d'une vente."""
     connect_db()
     sql_query = '''
-    SELECT p.name, s.quantity, p.price, s.subtotal from sale_items s
+    SELECT p.name, s.quantity, p.selling_price, s.subtotal from sale_items s
     JOIN products p ON s.product_id = p.id
     WHERE sale_id = %s or product_id = %s
     '''
@@ -735,10 +735,9 @@ def details_and_update(sale_id,update_callback):
             # Ensure inv_data is a list
             if isinstance(inv_data, tuple):
                 inv_data = list(inv_data)
-    
             product_code = result[1]
             quantity = float(quantity_entry.get())
-            price = float(result[4])
+            price = float(result[11])
             total = quantity * price
     
             # Check if product already exists in inv_data
@@ -774,8 +773,8 @@ def details_and_update(sale_id,update_callback):
         text="أضف",
         width=40,
         corner_radius=4,
-        fg_color='#0fff09',
-        text_color='#333',hover_color='#0fff6f',
+        fg_color='#333',
+        text_color='#fff',hover_color='#444',
         command=add_product
     )
     add_prod.pack(ipady=10,expand = False,side='left')
@@ -783,13 +782,13 @@ def details_and_update(sale_id,update_callback):
     title_label = ctk.CTkLabel(frame, text="المنتجات المضافة", font=('Ariel', 20, 'bold'))
     title_label.pack(pady=10)
     def recalculate_totals():
-        global total_amount, final_total
+        global total_amount, total_qty
 
         # Recalculer le montant total
         total_amount = sum(item[3] for item in inv_data)  # item[3] = total pour chaque ligne
+        total_qty = sum(item[1] for item in inv_data) 
+        print(total_qty,'item:',inv_data)
 
-        # Calculer le total final en incluant les taxes
-        final_total = total_amount + (total_amount * taxe * 0.01)
 
 
     def update_inv_table():
@@ -914,14 +913,11 @@ def details_and_update(sale_id,update_callback):
         for widget in total_frame.winfo_children():
             widget.destroy()
 
-        ctk.CTkLabel(total_frame, text=": المجموع", font=('Arial', 15, 'bold')).pack(side='right', padx=10, pady=5)
-        ctk.CTkLabel(total_frame, text=round(total_amount, 2), font=('Arial', 15, 'bold')).pack(side='right', padx=(0, 50))
+        ctk.CTkLabel(total_frame, text=round(total_amount, 2), font=('Arial', 15, 'bold')).pack(side='left', expand=True)
+        ctk.CTkLabel(total_frame, text=": المجموع", font=('Arial', 15, 'bold')).pack(side='left', padx=10, pady=5)
 
-        ctk.CTkLabel(total_frame, text=": الضريبة", font=('Arial', 15, 'bold')).pack(side='right', padx=10, pady=5)
-        ctk.CTkLabel(total_frame, text=f"{taxe}%", font=('Arial', 15, 'bold')).pack(side='right', padx=(0, 50))
-
-        ctk.CTkLabel(total_frame, text=": الاجمالي", font=('Arial', 15, 'bold')).pack(side='right', padx=10, pady=5)
-        ctk.CTkLabel(total_frame, text=round(final_total, 2), font=('Arial', 15, 'bold')).pack(side='right', padx=(0, 50))
+        ctk.CTkLabel(total_frame, text=": الكمية", font=('Arial', 15, 'bold')).pack(side='right', padx=10, pady=5)
+        ctk.CTkLabel(total_frame, text=total_qty, font=('Arial', 15, 'bold')).pack(side='right', expand=True)
 
     def add_invoice():
         global inv_data
@@ -946,8 +942,8 @@ def details_and_update(sale_id,update_callback):
 
                     if existing_item:
                         print(f"Updating existing item: {item}")
-                        query = "UPDATE sale_items SET quantity = %s, discount = %s, subtotal = %s WHERE id = %s"
-                        cursor.execute(query, (item[1], taxe, item[3], existing_item[0]))
+                        query = "UPDATE sale_items SET quantity = %s,  subtotal = %s WHERE id = %s"
+                        cursor.execute(query, (item[1], item[3], existing_item[0]))
 
                         # Calculer la différence entre la quantité actuelle et la nouvelle quantité
                         quantity_diff = item[1] - existing_item[1]
@@ -957,8 +953,8 @@ def details_and_update(sale_id,update_callback):
                         cursor.execute(query, (quantity_diff, prod_id))
                     else:
                         print(f"Inserting new item: {item}")
-                        query = "INSERT INTO sale_items (sale_id, product_id, quantity, discount, subtotal) VALUES (%s, %s, %s, %s, %s)"
-                        cursor.execute(query, (sale_id, prod_id, item[1], taxe, item[3]))
+                        query = "INSERT INTO sale_items (sale_id, product_id, quantity, subtotal) VALUES (%s, %s, %s, %s)"
+                        cursor.execute(query, (sale_id, prod_id, item[1], item[3]))
 
                         # Mettre à jour la quantité du produit
                         query = "UPDATE products SET quantity = quantity - %s WHERE id = %s"
@@ -1004,8 +1000,7 @@ def details_and_update(sale_id,update_callback):
 
 inv_data = []  # Change this to a list instead of a tuple
 total_amount = 0
-taxe = 15
-final_total = 0
+total_qty = 0
 
 #     return sale_frame
 # window = ctk.CTk(fg_color="#fff")
