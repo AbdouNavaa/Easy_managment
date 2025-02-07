@@ -23,7 +23,7 @@ def connect_db():
 def fetch_users(limit=10, offset=0):
     connect_db()
     query = f'''
-    SELECT id, username,email,created_at,updated_at
+    SELECT id, username,email,date(created_at),updated_at
     FROM users 
     LIMIT {limit} OFFSET {offset}'''
     my_cursor.execute(query)
@@ -43,29 +43,57 @@ def open_add_window(refresh_callback):
     # direction btn
     btns_frame = ctk.CTkFrame(add_window,fg_color='transparent',width=400)
     btns_frame.pack( ipady=10 , padx=20, pady=2)
-    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',hover_color='#fff',text_color='black',command=lambda:direction('Fr')).pack(pady=1,padx=(5,155),side='left')
-    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',hover_color='#fff',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
     
+    direction_btn(btns_frame,'Fr').pack(pady=10, padx=(5, 155), side='left')
+    direction_btn(btns_frame,'Ar').pack(pady=10, padx=(155, 5), side='right')
     # name 
     create_label(add_window,"اسم المستخدم").pack(ipady=10 ,pady=5, padx=20,fill='x')
     username_entry = create_entry(add_window) 
     
+    name_error = error_message(add_window, "")
+    name_error.pack(ipady=10 , padx=20)
+    
     # email
     create_label(add_window,"البريد الالكتروني").pack(ipady=10 ,pady=5, padx=20,fill='x')
     email_entry = create_entry(add_window)
+    email_error = error_message(add_window, "")
+    email_error.pack(ipady=10 , padx=20)
     
     # password_hash
     create_label(add_window,"كلمة المرور").pack(ipady=10 ,pady=5, padx=20,fill='x')
     password_entry = create_entry(add_window)
-    
+    password_error = error_message(add_window, "")
+    password_error.pack(ipady=10 , padx=20)
     def add_users():
         username = username_entry.get()
         email = email_entry.get()
         password = password_entry.get()
         
-        # Validation des informations de connexion
-        if username == "" or email == "" or password == "":
-            messagebox.showerror("Error", "Please fill all the fields")
+        # Réinitialiser les messages d'erreur
+        name_error.configure(text="")
+        password_error.configure(text="")
+        email_error.configure(text="")
+        
+        
+        # Validation des champs
+        has_error = False
+
+        if not validate_string(username):
+            name_error.configure(text="ادخل اسم صحيح (حروف فقط)")
+            has_error = True
+
+        if not validate_email(email):
+            email_error.configure(text="ادخل بريد الكتروني صحيح")
+            has_error = True
+            
+        if password == '' or len(password) < 4:
+            password_error.configure(text="ادخل كلمة مرور صحيحة ( 4 حروف او ارقام على الأقل)")
+            has_error = True
+
+
+        if has_error:
+            return
+        
         else:
             try:
                 connect_db()
@@ -107,28 +135,33 @@ def open_update_window(user, update_callback):
     # direction btn
     btns_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
     btns_frame.pack( ipady=10 , padx=20, pady=2)
-    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',hover_color='#fff',text_color='black',command=lambda:direction('Fr')).pack(pady=1,padx=(5,155),side='left')
-    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',hover_color='#fff',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
+    
+    direction_btn(btns_frame,'Fr').pack(pady=10, padx=(5, 155), side='left')
+    direction_btn(btns_frame,'Ar').pack(pady=10, padx=(155, 5), side='right') 
     # username 
     create_label(update_window,"اسم المستخدم ").pack(ipady=10 ,pady=5, padx=20,fill='x')
     username_entry = create_entry(update_window)
     username_entry.insert(0, custom[1])  # Pré-remplir avec la valeur actuelle
-
+    
+    name_error = error_message(update_window, "")
+    name_error.pack(ipady=10 , padx=20)
 
     
     # email 
     create_label(update_window,"البريد الالكتروني").pack(ipady=10 ,pady=5, padx=20,fill='x')
     email_entry = ctk.CTkEntry(update_window,font=font_arial, fg_color='#fff', 
             border_width=1, border_color='#ddd', corner_radius=2, width=400)
-    email_entry.insert(0, custom[2])  # Pré-remplir avec la valeur actuelle
     email_entry.pack(ipady=10 , padx=20)
+    email_entry.insert(0, custom[2])  
+    email_error = error_message(update_window, "")
+    email_error.pack(ipady=10 , padx=20)
     
     # password
     create_label(update_window,"كلمة المرور").pack(ipady=10 ,pady=5, padx=20,fill='x')
     password_entry = create_entry(update_window)
-    password_entry.insert(0, custom[3])  # Pré-remplir avec la valeur actuelle
-    password_entry.pack(ipady=10 , padx=20)
-    
+    password_entry.insert(0, custom[3]) 
+    password_error = error_message(update_window, "")
+    password_error.pack(ipady=10 , padx=20)
     
     # Bouton pour sauvegarder les modifications
     def save_changes():
@@ -137,9 +170,31 @@ def open_update_window(user, update_callback):
         password = password_entry.get()
         id = user[0]
         
-        if not username or not email or not password :
-            messagebox.showerror("Error", "Please fill all the fields")
+        # Réinitialiser les messages d'erreur
+        name_error.configure(text="")
+        password_error.configure(text="")
+        email_error.configure(text="")
+        
+        
+        # Validation des champs
+        has_error = False
+
+        if not validate_string(username):
+            name_error.configure(text="ادخل اسم صحيح (حروف فقط)")
+            has_error = True
+
+        if not validate_email(email):
+            email_error.configure(text="ادخل بريد الكتروني صحيح")
+            has_error = True
+            
+        if password == '' or len(password) < 4:
+            password_error.configure(text="ادخل كلمة مرور صحيحة")
+            has_error = True
+
+
+        if has_error:
             return
+
         
         try:
             connect_db()
@@ -447,16 +502,53 @@ def create_label(parent,text,wid=200):
     return label
 
 
+import re 
+def error_message(parent,text):
+    message = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12),height=10)
+    return message
+# Fonctions de validation
+def validate_string(input_str):
+    return bool(re.match(r'^[A-Za-z\s]+[0-9]+$', input_str))
+
+
+def validate_email(input_str):
+    return bool(re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', input_str))
+
+def direction_btn(parent,text):
+    btn = ctk.CTkButton(parent, text=text, width=40, fg_color='#f6f7f7',hover_color='#eee', text_color='black', command=lambda: direction(text))
+    btn.pack(pady=10, padx=(5, 155), side='left')
+    return btn
+
 # Function to create the users frame
-def create_users_frame(root ,user=None):
+# def create_users_frame(root ,user=None):
+#     users_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
+
+#     # print('User_:',user[0]) if user else None
+#     show_users_table(users_frame ,is_admin = user[4] if user else 0)
+#     return users_frame
+
+
+def create_users_frame(root):
     users_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
 
-    print('User:',user[0]) if user else None
-    show_users_table(users_frame ,is_admin = user[2] if user else 0)
+
+    # Frame pour le tableau des catégories
+    table_frame = ctk.CTkFrame(users_frame, fg_color="#fff")
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    def set_user(user):
+        # Nettoyer la frame avant d'afficher un nouveau tableau
+        for widget in table_frame.winfo_children():
+            widget.destroy()
+
+        # Afficher le tableau des catégories en fonction de l'utilisateur
+        is_admin = user[4] if user else 0
+        show_users_table(table_frame, is_admin=is_admin)
+
+    # Ajouter la méthode set_user à la frame
+    users_frame.set_user = set_user
+
     return users_frame
-
-
-
 # window = ctk.CTk(fg_color="#fff")
 # window.title('customtkinter app')
 # window.geometry('1200x550')

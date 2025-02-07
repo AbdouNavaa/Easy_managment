@@ -31,6 +31,16 @@ def fetch_warehouses(limit=10, offset=0):
     my_cursor.execute(query)
     return my_cursor.fetchall()
 
+
+def error_message(parent,text):
+    message = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12),height=10)
+    return message
+
+def direction_btn(parent,text):
+    btn = ctk.CTkButton(parent, text=text, width=40, fg_color='#f6f7f7',hover_color='#eee', text_color='black', command=lambda: direction(text))
+    btn.pack(pady=10, padx=(5, 155), side='left')
+    return btn
+
 # fenetere pour ajouter une categorie
 def open_add_window(refresh_callback):
     add_window = tk.Toplevel(background='#fff')
@@ -43,21 +53,27 @@ def open_add_window(refresh_callback):
     # direction btn
     btns_frame = ctk.CTkFrame(add_window,fg_color='transparent',width=400)
     btns_frame.pack( ipady=10 , padx=20, pady=2)
-    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Fr')).pack(pady=1,padx=(5,155),side='left')
-    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
+    
+    direction_btn(btns_frame,'Fr').pack(pady=10, padx=(5, 155), side='left')
+    direction_btn(btns_frame,'Ar').pack(pady=10, padx=(155, 5), side='right')
     # name 
     create_label(add_window,"اسم المخزون").pack(ipady=10 ,pady=5, padx=20,fill='x')
     name_entry = create_entry(add_window)
+    name_error = error_message(add_window, "")
+    name_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
+    
 
     # desc 
     create_label(add_window,"تفاصيل المخزون").pack(ipady=10 ,pady=5, padx=20,fill='x')
     desc_entry = create_entry(add_window)
-    desc_entry.pack(ipady=10 , padx=20,)
+    desc_error = error_message(add_window,"")
+    desc_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
 
     # location 
     create_label(add_window,"مكان المخزون").pack(ipady=10 ,pady=5, padx=20,fill='x')
     location_entry = create_entry(add_window)
-    location_entry.pack(ipady=10 , padx=20,)
+    location_error = error_message(add_window,"")
+    location_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
 
     
     def add_warehouses():
@@ -65,9 +81,27 @@ def open_add_window(refresh_callback):
         description = desc_entry.get()
         location = location_entry.get()
         
-        # Validation des informations de connexion
-        if name == "" or description == "" or location == "" :
-            messagebox.showerror("Error", "Please fill all the fields")
+        name_error.configure(text="")
+        desc_error.configure(text="")
+        location_error.configure(text="")
+        has_error = False
+
+        
+        if  name == '':
+            name_error.configure(text="الرجاء ادخال اسم المخزون")
+            has_error = True
+
+        if description == '':
+            desc_error.configure(text="الرجاء ادخال تفاصيل المخزون")
+            has_error = True
+
+        if location == '':
+            location_error.configure(text="الرجاء ادخال مكان المخزون")
+            has_error = True
+        
+        if has_error:
+            return
+
         else:
             try:
                 
@@ -114,23 +148,33 @@ def open_update_window(warehouse, update_callback):
     # direction btn
     btns_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
     btns_frame.pack( ipady=10 , padx=20, pady=2)
-    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Fr')).pack(pady=1,padx=(5,155),side='left')
-    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
-    # name 
 
+    direction_btn(btns_frame,'Fr').pack(pady=10, padx=(5, 155), side='left')
+    direction_btn(btns_frame,'Ar').pack(pady=10, padx=(155, 5), side='right')
+    
+    # name 
     create_label(update_window,"اسم المخزون").pack(ipady=10 ,pady=5, padx=20,fill='x')
     name_entry = create_entry(update_window)
-    name_entry.insert(0, warehouse[1])  # Pré-remplir avec la valeur actuelle
+    name_entry.insert(0, warehouse[1])  
 
+    name_error = error_message(update_window, "")
+    name_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
+    
     # desc 
     create_label(update_window,"تفاصيل المخزون").pack(ipady=10 ,pady=5, padx=20,fill='x')
     desc_entry = create_entry(update_window)
     desc_entry.insert(0, warehouse[3])
     
+    desc_error = error_message(update_window,"")
+    desc_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
+    
     # location 
     create_label(update_window,"مكان المخزون").pack(ipady=10 ,pady=5, padx=20,fill='x')
     location_entry = create_entry(update_window)
     location_entry.insert(0, warehouse[2])
+    
+    location_error = error_message(update_window,"")
+    location_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
 
 
     
@@ -140,6 +184,27 @@ def open_update_window(warehouse, update_callback):
         description = desc_entry.get()
         location = location_entry.get()
         id = warehouse[0]
+        
+        name_error.configure(text="")
+        desc_error.configure(text="")
+        location_error.configure(text="")
+        has_error = False
+
+        
+        if  name == '':
+            name_error.configure(text="الرجاء ادخال اسم المخزون")
+            has_error = True
+
+        if description == '':
+            desc_error.configure(text="الرجاء ادخال تفاصيل المخزون")
+            has_error = True
+
+        if location == '':
+            location_error.configure(text="الرجاء ادخال مكان المخزون")
+            has_error = True
+        
+        if has_error:
+            return
         
         try:
             connect_db()
@@ -433,23 +498,41 @@ def create_label(parent,text):
     return label
 
 
-# Function to create the warehouses frame
-def create_warehouses_frame(root,user=None):
-    warehouses_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
+# # Function to create the warehouses frame
+# def create_warehouses_frame(root,user=None):
+#     warehouses_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
     
-    show_warehouses_table(warehouses_frame,is_admin = user[2] if user else 0)
+#     show_warehouses_table(warehouses_frame,is_admin = user[4] if user else 0)
+#     return warehouses_frame
+
+def create_warehouses_frame(root):
+    warehouses_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
+
+
+    # Frame pour le tableau des catégories
+    table_frame = ctk.CTkFrame(warehouses_frame, fg_color="#fff")
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    def set_user(user):
+        # Nettoyer la frame avant d'afficher un nouveau tableau
+        for widget in table_frame.winfo_children():
+            widget.destroy()
+
+        # Afficher le tableau des catégories en fonction de l'utilisateur
+        is_admin = user[4] if user else 0
+        show_warehouses_table(table_frame, is_admin=is_admin)
+
+    # Ajouter la méthode set_user à la frame
+    warehouses_frame.set_user = set_user
+
     return warehouses_frame
-
-
 
 # window = ctk.CTk(fg_color="#fff")
 # window.title('customtkinter app')
 # window.geometry('1200x550')
 # window.state('zoomed')
 
-
 # warehouses_frame = create_warehouses_frame(window)
 # warehouses_frame.pack(fill='both', expand=True)
-
 # # run
 # window.mainloop()

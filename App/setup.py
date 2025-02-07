@@ -1,22 +1,30 @@
 from cx_Freeze import setup, Executable
 
 # Liste des packages à inclure
-packages = ["pymysql", "pandas", "tkcalendar", "bcrypt", "customtkinter", "PIL","openpyxl","sqlalchemy"]
+packages = ["pymysql", "pandas", "tkcalendar", "bcrypt", "customtkinter", "PIL", "openpyxl", "sqlalchemy", "matplotlib"]
 
 # Liste des fichiers de données à inclure
-include_files = ["user_data.json", "frames/","products.xlsx"]
+include_files = [
+    "frames/", 
+    "products.xlsx", 
+    "invoices.xlsx", 
+    ("easy_logo.ico", "easy_logo.ico")  # Inclure l'icône dans le répertoire de construction
+
+]
+
 # Configuration de l'exécutable
 executables = [
     Executable(
         "home.py",  # Remplacez par le nom de votre script principal
         base="Win32GUI",  # Utilisez "Win32GUI" pour une application sans console
-        icon="icon.ico",  # Optionnel : ajoutez une icône pour votre application
+        icon="easy_logo.ico",  # Chemin relatif ou absolu vers l'icône
     )
 ]
+
 setup(
-    name="MyApp",
-    version="1.1.0",
-    description="My App Description",
+    name="Esay",
+    version="1.1.1",
+    description="Application de gestion de stock",
     options={
         "build_exe": {
             "packages": packages,
@@ -26,3 +34,6 @@ setup(
     },
     executables=executables,
 )
+
+# pour build
+# python setup.py build

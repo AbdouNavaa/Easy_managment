@@ -61,7 +61,21 @@ def create_label(parent,text,wid=200):
     label_widgets.append(label)
     return label
 
+def error_message(parent,text):
+    message = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12),height=10)
+    return message
 
+import re 
+# Fonctions de validation
+def validate_string(input_str):
+    return bool(re.match(r'^[A-Za-z\s]+$', input_str))
+
+def validate_number(input_str):
+    # Vérifie que l'entrée contient uniquement des chiffres et a une longueur d'au moins 5
+    return bool(re.match(r'^[0-9]{8,}$', input_str))
+
+def validate_email(input_str):
+    return bool(re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', input_str))
 # import 
 def create_add_customer_frame(root):
     
@@ -78,24 +92,37 @@ def create_add_customer_frame(root):
     btns_frame.pack( ipady=10 , padx=20, pady=2)
     ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',hover_color='#fff',text_color='black',command=lambda:direction('Fr')).pack(pady=1,padx=(5,155),side='left')
     ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',hover_color='#fff',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
+
     # name 
-    create_label(add_customer_frame,"اسم العميل").pack(ipady=10 ,pady=5, padx=20,fill='x')
+    create_label(add_customer_frame,"اسم العميل").pack(ipady=5 ,pady=5, padx=20,fill='x')
     name_entry = create_entry(add_customer_frame)
+    
+    name_error = error_message(add_customer_frame,"")
+    name_error.pack( padx=20,fill='x')
 
     # phone 
-    create_label(add_customer_frame,"هاتف العميل").pack(ipady=10 ,pady=5, padx=20,fill='x')
+    create_label(add_customer_frame,"هاتف العميل").pack(ipady=5 ,pady=5, padx=20,fill='x')
     phone_entry = create_entry(add_customer_frame)
+    
+    phone_error = error_message(add_customer_frame,"")
+    phone_error.pack( padx=20,fill='x')
 
     
     # email 
-    create_label(add_customer_frame,"البريد الالكتروني").pack(ipady=10 ,pady=5, padx=20,fill='x')
+    create_label(add_customer_frame,"البريد الالكتروني").pack(ipady=5 ,pady=5, padx=20,fill='x')
     email_entry = ctk.CTkEntry(add_customer_frame,font=font_arial, fg_color='#fff', 
-            border_width=1, border_color='#ddd', corner_radius=4, width=400)
+            border_width=1, border_color='#ddd', corner_radius=8, width=400)
     email_entry.pack(ipady=10 , padx=20)
     
+    email_error = error_message(add_customer_frame,"")
+    email_error.pack( padx=20,fill='x')
+    
     # address 
-    create_label(add_customer_frame,"العنوان").pack(ipady=10 ,pady=5, padx=20,fill='x')
+    create_label(add_customer_frame,"العنوان").pack(ipady=5 ,pady=5, padx=20,fill='x')
     address_entry = create_entry(add_customer_frame)
+    
+    address_error = error_message(add_customer_frame,"")
+    address_error.pack( padx=20,fill='x')
     
     # labels frame
     labels_frame = ctk.CTkFrame(add_customer_frame,fg_color='transparent',)
@@ -105,19 +132,19 @@ def create_add_customer_frame(root):
     entries_frame = ctk.CTkFrame(add_customer_frame,fg_color='transparent',width=400)
     entries_frame.pack( ipady=10 , padx=20, pady=2)
     # balance
-    create_label(labels_frame,"الرصيد").pack(ipady=10 ,pady=5, fill='x',side='right')
+    create_label(labels_frame,"الرصيد").pack(ipady=5 ,pady=5, fill='x',side='right')
     balance_entry = create_entry(entries_frame,200)
     balance_entry.pack(ipady=10 , padx=20,side='right')
 
     
     # is_active 
-    create_label(labels_frame,"الحالة").pack(ipady=10 ,pady=5, fill='x',side='left')
+    create_label(labels_frame,"الحالة").pack(ipady=5 ,pady=5, fill='x',side='left')
     is_active = ['0-غير مفعل','1-مفعل']
 
     is_active_entry = ctk.CTkOptionMenu(
         entries_frame,values=is_active,anchor='center',
         text_color="#333",dropdown_fg_color="#fff",
-        font=font_arial,corner_radius=2,
+        font=font_arial,
         button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
     )
     is_active_entry.pack(ipady=10 , padx=20,side='left')
@@ -127,13 +154,36 @@ def create_add_customer_frame(root):
         phone = phone_entry.get()
         email = email_entry.get()
         address = address_entry.get()
-        balance = float(balance_entry.get())
+        balance = (balance_entry.get())
         int(is_active_entry.get()[0])
         is_active = int(is_active_entry.get()[0])
         
         # Validation des informations de connexion
-        if name == "" or phone == "" or email == "" or address == "" :
-            messagebox.showerror("Error", "Please fill all the fields")
+        name_error.configure(text="")
+        phone_error.configure(text="")
+        email_error.configure(text="")
+        address_error.configure(text="")
+        has_error = False
+        
+        if name == '':
+            name_error.configure(text="ادخل اسم صحيح (حروف فقط)")
+            has_error = True
+            
+        if not validate_number(phone):
+            phone_error.configure(text="ادخل رقم صحيح (بدون مسافات)")
+            has_error = True
+            
+        if not validate_email(email):
+            email_error.configure(text="ادخل بريد الكتروني صحيح")
+            has_error = True
+            
+        if address == '':
+            address_error.configure(text="ادخل عنوان صحيح")
+            has_error = True
+            
+        if has_error:
+            return
+
         else:
             try:
                 connect_db()
@@ -143,7 +193,6 @@ def create_add_customer_frame(root):
                 my_cursor.execute(query, (name, phone, email, address, balance, is_active))
                 connect.commit()
                 messagebox.showinfo('نجاح', 'تم اضافة العميل بنجاح')
-                
                 
                 result = messagebox.askyesno('تم الاضافة', 'هل تريد اضافة عميل جديد?' , parent=add_customer_frame)
                 if result == True:

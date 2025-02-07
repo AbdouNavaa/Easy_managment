@@ -21,7 +21,6 @@ from frames.users_frame import create_users_frame
 from frames.add_user_frame import create_add_user_frame
 from frames.invoices_frame import  create_sales_frame
 from frames.new_invoice import create_add_sale_frame
-from frames.invoice_details_frame import frame_principal
 # from frames.login_frame import create_login_frame
 from tkinter import messagebox
 import pymysql
@@ -58,7 +57,7 @@ def update_entry_justification():
 # for entries
 def create_entry(parent,width=400,show=''):
     entry = ctk.CTkEntry(parent, justify=justify,font=("Arial", 14), fg_color='#fff',
-                         border_width=1, border_color='#ddd', corner_radius=2, width=width,show= show)
+                        border_width=1, border_color='#ddd', corner_radius=2, width=width,show= show)
     entry.pack(ipady=10 , padx=20)
     entry_widgets.append(entry)
     return entry
@@ -78,7 +77,6 @@ class App(ctk.CTk):
         self.geometry("1000x700")
 
         # Create a container for the navbar
-        self.navbar1 = ctk.CTkFrame(self, fg_color="#333", corner_radius=0)
         self.navbar = ctk.CTkFrame(self, fg_color="#333", corner_radius=0)
 
         # Create a container for all pages
@@ -86,48 +84,46 @@ class App(ctk.CTk):
 
         # Store pages (frames) in a dictionary
         self.frames = {}
+        self.logged_in = False  # État initial : non connecté
 
         # Initialize the navigation bar
-        self.create_navbar()
-        self.create_navbar1()
+        self.create_navbar(logged_in=False)  # Créer la navbar avec l'état déconnecté
+        self.navbar.pack(side="top", fill="x")  # Afficher la navbar
 
         # Initialize and show the appropriate frame
         self.init_frames()
         self.user_data = user if user else {}
         print("User Data: ", self.user_data)
-        self.show_frame("Login")
+        self.show_frame("Verify")
+        
     def init_frames(self):
         """Initialize and store all frames/pages."""
+        self.frames["Verify"] = create_verify_frame(self.container, self)
         self.frames["Login"] = create_login_frame(self.container, self)
-
-    def init_frames1(self,user=None,):
-        """Initialize and store all frames/pages."""
         self.frames["Home"] = create_home_frame(self.container)
-        self.frames["Products"] = create_products_frame(self.container,user)
-        self.frames["Categories"] = create_categories_frame(self.container,user)
-        self.frames["Suppliers"] = create_suppliers_frame(self.container,user)
-        self.frames["Inventory"] = create_warehouses_frame(self.container,user)
-        self.frames["Customers"] = create_customers_frame(self.container,user)
-        self.frames["Users"] = create_users_frame(self.container,user)
-        self.frames["Sales"] = create_sales_frame(self.container,user,)
+        self.frames["Products"] = create_products_frame(self.container)
+        self.frames["Categories"] = create_categories_frame(self.container)
+        self.frames["Suppliers"] = create_suppliers_frame(self.container)
+        self.frames["Inventory"] = create_warehouses_frame(self.container)
+        self.frames["Customers"] = create_customers_frame(self.container)
+        self.frames["Users"] = create_users_frame(self.container)
+        self.frames["Sales"] = create_sales_frame(self.container)
         
         self.frames["AddProduct"] = create_add_product_frame(self.container)
         self.frames["AddProductCategory"] = create_add_category_frame(self.container)
         self.frames["AddSupplier"] = create_add_supplier_frame(self.container)
         self.frames["AddCustomer"] = create_add_customer_frame(self.container)
         self.frames["AddUser"] = create_add_user_frame(self.container)
-        self.frames["AddSale"] = create_add_sale_frame(self.container,user)
+        self.frames["AddSale"] = create_add_sale_frame(self.container)
         self.frames['AddInventory'] = create_add_warehouse_frame(self.container)
-        self.frames['SaleItems'] = frame_principal(self.container)
-        
 
-        
         # Pack all frames but hide them initially
         for frame in self.frames.values():
             frame.pack(fill="both", expand=True)
             frame.pack_forget()
 
-    def show_frame(self, frame_name):
+
+    def show_frame(self, frame_name, user=None):
         """Switch to the frame with the given name."""
         for name, frame in self.frames.items():
             if name == frame_name:
@@ -135,145 +131,142 @@ class App(ctk.CTk):
                     frame.pack(fill="both", expand=True, padx=400, pady=10, ipady=100)
                 elif name == "AddUser" or name == "Login" or name == "AddInventory":
                     frame.pack(fill="x", expand=True, padx=400, pady=10, ipady=50)
+                elif name == "Home" or name == "Verify":
+                    frame.pack(fill="both", expand=True)
                 else:
+                    # Si la frame a une méthode `set_user`, on l'appelle pour mettre à jour l'utilisateur
+                    if hasattr(frame, 'set_user'):
+                        frame.set_user(user)
                     frame.pack(fill="both", expand=True)
             else:
                 frame.pack_forget()
 
     def login(self, user):
+        self.user_data = user
+        self.logged_in = True  # Mettre à jour l'état de connexion
         
-        # supprimer tous les frames
-        self.navbar1.pack_forget()
-        self.navbar.pack_forget()
+        # Reconstruire la navbar pour afficher les boutons supplémentaires
+        self.navbar.pack_forget()  # Supprimer l'ancienne navbar
         self.container.pack_forget()
-        
-        # pack all frames necessaries
-        self.user_data = load_user_data().get('user')
-        self.init_frames1(user=self.user_data)
-        self.navbar.pack(side="top", fill="x")
+        self.create_navbar(logged_in=True, user=user)  # Recréer la navbar avec l'état connecté
+        self.navbar.pack(side="top", fill="x")  
         self.container.pack(fill="both", expand=True)
-        self.show_frame("Home")
-        # print(f"Login status: {self.user_data}")
+        
+        # Afficher la frame "Home" avec l'utilisateur
+        self.show_frame("Home", user=user)
 
+    def create_navbar(self, logged_in=False, user=None):
+        # Supprimer tous les widgets existants dans la navbar
+        for widget in self.navbar.winfo_children():
+            widget.destroy()
 
-
-    def create_navbar1(self):
         button_style = {"font": ("Arial", 16), "fg_color": "#333", "text_color": "white", "hover_color": "#333"}
+        
         # logo button
-        logo_btn = ctk.CTkButton(self.navbar1, text="Easy", **button_style,width=140,anchor='w')
+        logo_btn = ctk.CTkButton(self.navbar, text="Easy", **button_style, width=140, anchor='w')
         logo_btn.pack(side="right", padx=1, pady=5)
 
+        if logged_in:
+            # Home button
+            self.home_btn = ctk.CTkButton(self.navbar, text="الرئيسية", command=lambda: self.show_frame("Home", user=user), **button_style, width=90)
+            self.home_btn.pack(side="right", padx=1, pady=5)
+
+            # Products dropdown
+            products_dropdown = self.create_dropdown(self.navbar, 'المنتجات', [
+                ("عرض المنتجات", lambda: self.show_frame("Products", user=user)),
+                ("إضافة منتج", lambda: self.show_frame("AddProduct"))
+            ])
+            products_dropdown.pack(side="right", padx=1, pady=5)
+
+
+            # Categories dropdown
+            categories_dropdown = self.create_dropdown(self.navbar, 'الاقسام', [
+                ("عرض الفئات", lambda: self.show_frame("Categories", user=user)),
+                ("إضافة فئة", lambda: self.show_frame("AddProductCategory"))
+            ])
+            categories_dropdown.pack(side="right", padx=1, pady=5)
+
+            # Inventory dropdown
+            inventory_dropdown = self.create_dropdown(self.navbar, 'المخازن', [
+                ("عرض المخازن", lambda: self.show_frame("Inventory", user=user)),
+                ("إضافة مخزن", lambda: self.show_frame("AddInventory"))
+            ])
+            inventory_dropdown.pack(side="right", padx=1, pady=5)
+
+            # Sales dropdown
+            sale_dropdown = self.create_dropdown(self.navbar, 'المبيعات', [
+                ("عرض الفواتير", lambda: self.show_frame("Sales", user=user)),
+                ("إضافة فاتورة", lambda: self.show_frame("AddSale"))
+            ])
+            sale_dropdown.pack(side="right", padx=1, pady=5)
+
+            # Customers dropdown
+            customer_dropdown = self.create_dropdown(self.navbar, 'العملاء', [
+                ("عرض العملاء", lambda: self.show_frame("Customers", user=user)),
+                ("إضافة عميل", lambda: self.show_frame("AddCustomer"))
+            ])
+            customer_dropdown.pack(side="right", padx=1, pady=5)
+
+            # Suppliers dropdown
+            supplier_dropdown = self.create_dropdown(self.navbar, 'الموردين', [
+                (" قائمة الموردين", lambda: self.show_frame("Suppliers", user=user)),
+                ("إضافة مورد", lambda: self.show_frame("AddSupplier"))
+            ])
+            supplier_dropdown.pack(side="right", padx=1, pady=5)
+
+            # Users dropdown
+            user_dropdown = self.create_dropdown(self.navbar, 'المستخدمين', [
+                ("عرض المستخدمين", lambda: self.show_frame("Users", user=user)),
+                ("إضافة مستخدم", lambda: self.show_frame("AddUser"))
+            ])
+            user_dropdown.pack(side="right", padx=1, pady=5)
+
+            # settings
+            settings_btn = ctk.CTkButton(self.navbar, text="الاعدادات", **button_style, width=60)
+            settings_btn.pack(side="right", padx=1, pady=5)
+
+            # Backup button
+            self.home_btn = ctk.CTkButton(self.navbar, text="النسخ الاحتياطي", command=lambda: export_to_sql(), **button_style, width=60)
+            self.home_btn.pack(side="right", padx=1, pady=5)
+
+            # Logout button
+            logout_btn = ctk.CTkButton(self.navbar, text="تسجيل الخروج", command=lambda: self.logout(), **button_style, width=90)
+            logout_btn.pack(side="left", padx=1, pady=5)
+
+    def logout(self):
+        self.logged_in = False  # Mettre à jour l'état de connexion
         
-    def create_navbar(self):
-        button_style = {"font": ("Arial", 16), "fg_color": "#333", "text_color": "white", "hover_color": "#333"}
-        # logo button
-        logo_btn = ctk.CTkButton(self.navbar, text="Easy",command=lambda: self.show_frame("Home"), **button_style,width=140,anchor='w')
-        logo_btn.pack(side="right", padx=1, pady=5)
-
-        # Home button
-        self.home_btn = ctk.CTkButton(self.navbar, text="الرئيسية", command=lambda: self.show_frame("Home"), **button_style,width=90)
-        self.home_btn.pack(side="right", padx=1, pady=5)
-
-
-        # Products dropdown
-        products_dropdown = self.create_dropdown(self.navbar,'المنتجات', [
-            ("عرض المنتجات", lambda: self.show_frame("Products")),
-            ("إضافة منتج", lambda: self.show_frame("AddProduct"))
-        ])
-        products_dropdown.pack(side="right", padx=1, pady=5)
-
-        # Categories dropdown
-        categories_dropdown = self.create_dropdown(self.navbar,'الاقسام', [
-            ("عرض الفئات", lambda: self.show_frame("Categories")),
-            ("إضافة فئة", lambda: self.show_frame("AddProductCategory"))
-        ])
-        categories_dropdown.pack(side="right", padx=1, pady=5)
-
-        # Inventory button
-        # inventory_btn = ctk.CTkButton(self.navbar, text="المخزون", command=lambda: self.show_frame("Inventory"), **button_style,width=50)
-        # inventory_btn.pack(side="right", padx=1, pady=5)
-        inventory_dropdown = self.create_dropdown(self.navbar,'المخازن', [
-            ("عرض المخازن", lambda: self.show_frame("Inventory")),
-            ("إضافة مخزن", lambda: self.show_frame("AddInventory"))
-        ])
-        inventory_dropdown.pack(side="right", padx=1, pady=5)
-        # Sales button
+        # Reconstruire la navbar pour afficher uniquement le bouton "Easy"
+        self.navbar.pack_forget()  # Supprimer l'ancienne navbar
+        self.container.pack_forget()
+        self.create_navbar(logged_in=False)  # Recréer la navbar avec l'état connecté
+        self.navbar.pack(side="top", fill="x")  
+        self.container.pack(fill="both", expand=True)
         
-        sale_dropdown = self.create_dropdown(self.navbar,'المبيعات', [
-            ("عرض الفواتير", lambda: self.show_frame("Sales")),
-            ("إضافة فاتورة", lambda: self.show_frame("AddSale"))
-        ])
-        # customer_dropdown.pack(side="right", padx=1, pady=5)
-        sale_dropdown.pack(side="right", padx=1, pady=5)
-        # sales_btn = ctk.CTkButton(self.navbar, text="المبيعات", command=lambda: self.show_frame("Sales"), **button_style,width=50)
-        # sales_btn.pack(side="right", padx=1, pady=5)
-
-        # Customers dropdown
-        customer_dropdown = self.create_dropdown(self.navbar,'العملاء', [
-            ("عرض العملاء", lambda: self.show_frame("Customers")),
-            ("إضافة عميل", lambda: self.show_frame("AddCustomer"))
-        ])
-        customer_dropdown.pack(side="right", padx=1, pady=5)
-
-        # Suppliers dropdown
-        supplier_dropdown = self.create_dropdown(self.navbar,'الموردين', [
-            (" قائمة الموردين", lambda: self.show_frame("Suppliers")),
-            ("إضافة مورد", lambda: self.show_frame("AddSupplier"))
-        ])
-        supplier_dropdown.pack(side="right", padx=1, pady=5)
-        
-        # Users dropdown
-        user_dropdown = self.create_dropdown(self.navbar,'المستخدمين', [
-            ("عرض المستخدمين", lambda: self.show_frame("Users")),
-            ("إضافة مستخدم", lambda: self.show_frame("AddUser"))
-        ])
-        user_dropdown.pack(side="right", padx=1, pady=5)
-        
-        # settings
-        settings_btn = ctk.CTkButton(self.navbar, text="الاعدادات",  **button_style,width=60)
-        settings_btn.pack(side="right", padx=1, pady=5)
-        
-            # Settings dropdown
-        # settings_dropdown = self.create_dropdown(self.navbar, 'الاعدادات', [
-        #     ("Sauvegarder la base de données", lambda: self.backup_database())  # Ajouter le bouton de sauvegarde
-        # ])
-        # settings_dropdown.pack(side="right", padx=1, pady=5)
-        
-        self.home_btn = ctk.CTkButton(self.navbar, text="النسخ الاحتياطي", command=lambda: export_to_sql(), **button_style,width=60)
-        self.home_btn.pack(side="right", padx=1, pady=5)
-        
-        # Logout button
-        logout_btn = ctk.CTkButton(self.navbar, text="تسجيل الخروج", command=lambda: logout(self), **button_style,width=90)
-        logout_btn.pack(side="left", padx=1, pady=5)
-        def logout(self):
-            try:
-                self.navbar.pack_forget()
-                self.container.pack_forget()
-                # self.navbar1.pack_forget()
-                
-                self.navbar1.pack(side="top", fill="x")
-                # self.create_navbar1()        
-                self.container.pack(fill="both", expand=True)
-                
-                os.remove('user_data.json')  # Supprimer le fichier pour déconnecter l'utilisateur
-            except FileNotFoundError:
-                pass  # Si le fichier n'existe pas, ignorer l'erreur
-            self.show_frame("Login") # Assuming the login script has a main() function to launch the login window
-
-
-    def create_dropdown(self, parent, name,options):
+        self.show_frame("Login")  # Afficher la frame "Login"
+    def create_dropdown(self, parent, name, options):
+        # Créez un StringVar pour stocker la valeur actuelle du menu déroulant
         default = tk.StringVar(value=name)
+        
+        # Fonction pour mettre à jour le texte du menu déroulant
+        def on_select(value):
+            # Trouvez l'option sélectionnée
+            selected_option = [option[0] for option in options].index(value)
+            # Exécutez la commande associée à l'option
+            options[selected_option][1]()
+            # Mettez à jour le StringVar pour refléter la sélection actuelle
+            default.set(name)
+        
+        # Créez le menu déroulant avec le StringVar
         dropdown = ctk.CTkOptionMenu(parent, 
-            text_color="#fff",dropdown_fg_color="#fff",fg_color='#333',
-            font=("Arial", 14),dropdown_font=("Arial", 14),width=90,
-            button_color="#333",dropdown_hover_color="#fff",button_hover_color='#333',
-            values=[option[0] for option in options],anchor='e',
+            text_color="#fff", dropdown_fg_color="#fff", fg_color='#333',
+            font=("Arial", 14), dropdown_font=("Arial", 14), width=90,
+            button_color="#333", dropdown_hover_color="#fff", button_hover_color='#333',
+            values=[option[0] for option in options], anchor='e',
             variable=default,
-            command=lambda value: options[[option[0] for option in options].index(value)][1]())
+            command=on_select)
+        
         return dropdown
-
-
-
 def export_to_sql():
     try:
         # Demander à l'utilisateur de choisir un répertoire
@@ -335,21 +328,11 @@ def export_to_sql():
         # Gérer les exceptions
         messagebox.showerror("خطأ", f"حدث خطأ غير متوقع: {str(e)}")
         
-def save_user_data(user_data):
-    with open('user_data.json', 'w') as f:
-        json.dump(user_data, f)
-
-def load_user_data():
-    try:
-        with open('user_data.json', 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return {'logged_in': False}  # Si le fichier n'existe pas, l'utilisateur n'est pas connecté
-    
+ 
 # === Création de la fenêtre de connexion ===
 def create_login_frame(root,app):
     # Création du frame
-    app.navbar1.pack(side="top", fill="x")
+    app.navbar.pack(side="top", fill="x")
     app.container.pack_forget()
     app.container.pack(fill="both", expand=True)
     login_frame = ctk.CTkFrame(root, fg_color='#fff', border_width=1, border_color='#ddd')
@@ -400,12 +383,9 @@ def create_login_frame(root,app):
             # Vérification de l'existence de l'utilisateur et du mot de passe
             if user and bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
                 # Connexion réussie
-                user_data = {'user': [user[1],user[2],user[4]], 'logged_in': True}  # Créez un dictionnaire pour stocker les données de l'utilisateur
-                save_user_data(user_data)  # Enregistrez les données dans un fichier JSON
                 messagebox.showinfo('نجاح', f' {username} مرحبا بك')
                 username_entry.delete(0,tk.END)
                 password_entry.delete(0,tk.END)
-                messagebox._show(' الرجاء الانتظار يتم تحديث البيانات')
                 app.login(user)
             else:
                 messagebox.showerror("خطأ", " اسم المستخدم او كلمة المرور غير صحيحة")
@@ -421,6 +401,56 @@ def create_login_frame(root,app):
     add_button.pack(pady=20,padx=20,ipady=10)# Fonction pour afficher la fenêtre de mise à jour
 
     return login_frame
+
+
+
+# Chemin du fichier contenant les codes de licence
+LICENSE_FILE = "licenses.txt"
+
+def load_license_codes():
+    """Charge les codes de licence depuis le fichier."""
+    try:
+        with open(LICENSE_FILE, "r") as file:
+            return [line.strip() for line in file.readlines()]
+    except FileNotFoundError:
+        messagebox.showerror("Erreur", "Fichier de licence introuvable.")
+        return []
+
+def verify_license(entered_code):
+    """Vérifie si le code entré est valide."""
+    license_codes = load_license_codes()
+    return entered_code in license_codes
+
+def create_verify_frame(parent, app):
+    """Crée la frame d'accueil avec la vérification de licence."""
+    verify_frame = ctk.CTkFrame(parent, fg_color="white")
+
+    # Titre
+    title_label = ctk.CTkLabel(verify_frame, text="Page d'Accueil", font=("Arial", 24, "bold"))
+    title_label.pack(pady=20)
+
+    # Champ pour entrer le code de licence
+    license_label = ctk.CTkLabel(verify_frame, text="Entrez le code de licence :", font=("Arial", 16))
+    license_label.pack(pady=10)
+
+    license_entry = ctk.CTkEntry(verify_frame,font=("Arial", 14), fg_color='#fff',
+                        border_width=1, border_color='#ddd', corner_radius=2, width=300)
+    license_entry.pack(pady=10,ipady=10)
+
+    # Bouton pour vérifier la licence
+    def on_verify_license():
+        entered_code = license_entry.get().strip()
+        if verify_license(entered_code):
+            messagebox.showinfo("Succès", "Licence valide. Vous pouvez maintenant vous connecter.")
+            app.show_frame("Login")  # Afficher la frame de connexion
+        else:
+            messagebox.showerror("Erreur", "Code de licence invalide.")
+
+    verify_button = ctk.CTkButton(verify_frame, text="Vérifier la licence",fg_color='#222',
+        width=300,font=("Arial", 16,'bold'), command=on_verify_license,corner_radius=2)
+    verify_button.pack(pady=20,padx=30,ipady=10)
+
+    return verify_frame
 
 
 app = App()

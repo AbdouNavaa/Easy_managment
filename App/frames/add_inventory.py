@@ -59,6 +59,10 @@ def create_label(parent,text):
     label_widgets.append(label)
     return label
 
+def error_message(parent,text):
+    message = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12),height=10)
+    return message
+# Fonctions de validation
 
 # import 
 def create_add_warehouse_frame(root):
@@ -77,18 +81,23 @@ def create_add_warehouse_frame(root):
     ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',hover_color='#eee',text_color='black',command=lambda:direction('Fr')).pack(pady=1,padx=(5,155),side='left')
     ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',hover_color='#eee',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
     # name 
-    create_label(add_warehouse_frame,"اسم المخزون").pack(ipady=10 ,pady=5, padx=20)
+    create_label(add_warehouse_frame,"اسم المخزون").pack(ipady=10 ,pady=5, padx=20,fill='x')
     name_entry = create_entry(add_warehouse_frame)
+    name_error = error_message(add_warehouse_frame, "")
+    name_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
+    
 
     # desc 
-    create_label(add_warehouse_frame,"تفاصيل المخزون").pack(ipady=10 ,pady=5, padx=20)
+    create_label(add_warehouse_frame,"تفاصيل المخزون").pack(ipady=10 ,pady=5, padx=20,fill='x')
     desc_entry = create_entry(add_warehouse_frame)
-    desc_entry.pack(ipady=10 , padx=20,)
+    desc_error = error_message(add_warehouse_frame,"")
+    desc_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
 
     # location 
-    create_label(add_warehouse_frame,"مكان المخزون").pack(ipady=10 ,pady=5, padx=20)
+    create_label(add_warehouse_frame,"مكان المخزون").pack(ipady=10 ,pady=5, padx=20,fill='x')
     location_entry = create_entry(add_warehouse_frame)
-    location_entry.pack(ipady=10 , padx=20,)
+    location_error = error_message(add_warehouse_frame,"")
+    location_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
 
     
     def add_warehouses():
@@ -96,17 +105,35 @@ def create_add_warehouse_frame(root):
         description = desc_entry.get()
         location = location_entry.get()
         
-        # Validation des informations de connexion
-        if name == "" or description == "" or location == "" :
-            messagebox.showerror("Error", "Please fill all the fields")
+        name_error.configure(text="")
+        desc_error.configure(text="")
+        location_error.configure(text="")
+        has_error = False
+
+        
+        if  name == '':
+            name_error.configure(text="الرجاء ادخال اسم المخزون")
+            has_error = True
+
+        if description == '':
+            desc_error.configure(text="الرجاء ادخال تفاصيل المخزون")
+            has_error = True
+
+        if location == '':
+            location_error.configure(text="الرجاء ادخال مكان المخزون")
+            has_error = True
+        
+        if has_error:
+            return
+
         else:
             try:
                 
                 connect_db()
-                query = 'insert into warehouses (name,description,location,updated_at,created_at) values(%s,%s,%s,NOW(),NOW())'
-                my_cursor.execute(query,(name, description,location))
-                messagebox.showinfo('نجاح', 'تم اضافة المخزون')
+                query = 'insert into warehouses (name,description,location,updated_at) values(%s,%s,%s,%s)'
+                my_cursor.execute(query,(name, description,location, datetime.now()))
                 connect.commit()
+                messagebox.showinfo('نجاح', 'تم اضافة المخزون')
                 
                 
                 result = messagebox.askyesno('تم اضافة المخزون', 'هل تريد الاضافة مرة اخرى?' , parent=add_warehouse_frame)
@@ -114,6 +141,7 @@ def create_add_warehouse_frame(root):
                     name_entry.delete(0,tk.END)
                     desc_entry.delete(0, tk.END)
                     location_entry.delete(0, tk.END)
+                    # add_warehouse_frame.destroy()
             except Exception as e:
                 messagebox.showerror('Error', str(e))
             

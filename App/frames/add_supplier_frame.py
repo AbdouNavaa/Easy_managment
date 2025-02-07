@@ -47,91 +47,74 @@ def create_add_supplier_frame(root):
 
     #name
     name_label = create_label(add_supplier_frame,"اسم المورد",400)
-    name_label.pack(ipady=10, pady=1, padx=20)
-    
     name_entry = create_entry(add_supplier_frame)
-    name_entry.pack(ipady=10, padx=20)
-
+    name_error_label = error_message(add_supplier_frame, "")
     
     #phone
-    phone_label = create_label(add_supplier_frame,"رقم الهاتف",400)
-    phone_label.pack(ipady=10, pady=5, padx=20)
-    
-    phone_entry = create_entry(add_supplier_frame)
-    phone_entry.pack(ipady=10 , padx=20)
-    
+    phone_label = create_label(add_supplier_frame,"رقم الهاتف",400)    
+    phone_entry = create_entry(add_supplier_frame)    
+    phone_error_label = error_message(add_supplier_frame, "")
     
     #email
-    email_label = create_label(add_supplier_frame,"البريد الالكتروني",400)
-    email_label.pack(ipady=10, pady=5, padx=20)
-    
+    email_label = create_label(add_supplier_frame,"البريد الالكتروني",400)    
     email_entry = ctk.CTkEntry(add_supplier_frame, font=font_arial,
-    fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=2,width=400)
+    fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=2,width=400)    
     email_entry.pack(ipady=10 , padx=20)
+    email_error_label = error_message(add_supplier_frame, "")
     
     #address
-    address_label = create_label(add_supplier_frame,"العنوان",400)
-    address_label.pack(ipady=10, pady=5, padx=20)
-    
+    address_label = create_label(add_supplier_frame,"العنوان",400)    
     address_entry = create_entry(add_supplier_frame)
-    address_entry.pack(ipady=10 , padx=20)
-    
-    # labels frame
-    labs_frame = ctk.CTkFrame(add_supplier_frame,fg_color='transparent',width=400)
-    labs_frame.pack( ipady=10 , padx=20, pady=2)
-    
-    # entries frame
-    entries_frame = ctk.CTkFrame(add_supplier_frame,fg_color='transparent',width=400)
-    entries_frame.pack( ipady=10 , padx=20, pady=2)
-    
-    # credit limit
-    credit_label = create_label(labs_frame,"الحد",200)
-    credit_label.pack(ipady=10 ,pady=5, padx=(0,2),side='right')
-    
-    credit_limit = ctk.CTkEntry(entries_frame, font=font_arial, 
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=2,justify='right',width=200)
-    credit_limit.pack(ipady=10 , padx=2,side='right')
-    
-    # account_id 
-    connect_db()
-    list_of_suppliers = []
-    fetch_drop(suppliers, list_of_suppliers)
-
-    account_label = create_label(labs_frame,"الحساب",200)
-    account_label.pack(ipady=10,pady=5 , padx=(2,0),side='left')
-
-    account_id = ctk.CTkOptionMenu(
-        entries_frame,values=list_of_suppliers,anchor='center',
-        text_color="#333",dropdown_fg_color="#fff",
-        width=200,
-        font=font_arial,
-        button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
-    )
-    account_id.pack(ipady=10 , padx=2,side='left')
+    address_error_label = error_message(add_supplier_frame, "")
     # Bouton pour sauvegarder les modifications
     def save_changes():
         name = name_entry.get()
         phone = phone_entry.get()
         email = email_entry.get()
-        address = address_entry.get()
-        credit = credit_limit.get()
-        account = account_id.get()[0]        
+        address = address_entry.get()    
         
+        # Réinitialiser les messages d'erreur
+        name_error_label.configure(text="")
+        phone_error_label.configure(text="")
+        email_error_label.configure(text="")
+        address_error_label.configure(text="")
+
+        # Validation des champs
+        has_error = False
+
+        if not validate_string(name):
+            name_error_label.configure(text="ادخل اسم صحيح (حروف فقط)")
+            has_error = True
+
+        if not validate_number(phone):
+            phone_error_label.configure(text="ادخل رقم هاتف صحيح (8 أرقام على الأقل)")
+            has_error = True
+
+        if not validate_email(email):
+            email_error_label.configure(text="ادخل بريد الكتروني صحيح")
+            has_error = True        
+        
+        if address == '':
+            address_error_label.configure(text="ادخل  عنوان ")
+            has_error = True        
+        
+        if has_error:
+            return  # Ne pas continuer si une erreur est détectée
+            
         try:
             connect_db()
         
-            query = 'insert into suppliers (name,phone,email,address,credit_limit,account_id) values(%s,%s,%s,%s,%s,%s)'
-            my_cursor.execute(query,(name,phone,email,address,credit,account))
+            query = 'insert into suppliers (name,phone,email,address) values(%s,%s,%s,%s)'
+            my_cursor.execute(query,(name,phone,email,address))
             connect.commit()
             messagebox.showinfo('نجاح', 'تم اضافة المورد بنجاح')
-            refresh_callback()
+            
             result = messagebox.askyesno('تم الاضافة', 'هل تريد اضافة مورد جديد?' , parent=add_supplier_frame)
             if result == True:
                 name_entry.delete(0,tk.END)
                 phone_entry.delete(0, tk.END)
                 email_entry.delete(0, tk.END)
                 address_entry.delete(0, tk.END) 
-                credit_limit.delete(0, tk.END)
                 # add_supplier_frame.destroy()  # Fermer la fenêtre de mise à jour
                 
         except ValueError:
@@ -164,14 +147,34 @@ def update_entry_justification():
 def create_entry(parent):
     font_arial =("Arial", 14)   
     entry = ctk.CTkEntry(parent, justify=justify,font=font_arial, fg_color='#fff', border_width=1, border_color='#ddd', corner_radius=2, width=400)
+    entry.pack(ipady=10 , padx=20)
     entry_widgets.append(entry)
     return entry
 
 # for labels
 def create_label(parent,text,wid):
     label = ctk.CTkLabel(parent, bg_color='#f9f9f9', font=("Arial", 16,'bold'), anchor='center', text=text, width=wid)
+    label.pack(ipady=10, pady=5, padx=20)
     label_widgets.append(label)
     return label
+
+def error_message(parent,text):
+    message = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12))
+    message.pack(padx=20)
+    return message
+
+import re 
+# Fonctions de validation
+def validate_string(input_str):
+    return bool(re.match(r'^[A-Za-z\s]+$', input_str))
+
+def validate_number(input_str):
+    # Vérifie que l'entrée contient uniquement des chiffres et a une longueur d'au moins 5
+    return bool(re.match(r'^[0-9]{8,}$', input_str))
+
+def validate_email(input_str):
+    return bool(re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', input_str))
+
 
 # window 
 # window = ctk.CTk(fg_color="#fff")

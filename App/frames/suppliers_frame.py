@@ -193,118 +193,122 @@ def show_suppliers_table(parent, limit=10,is_admin= 0):
     next_button.pack(side="right", padx=5)
 
     update_table()
+    
+import re 
+# Fonctions de validation
+def validate_string(input_str):
+    return bool(re.match(r'^[A-Za-z\s]+$', input_str))
 
+def validate_number(input_str):
+    # Vérifie que l'entrée contient uniquement des chiffres et a une longueur d'au moins 5
+    return bool(re.match(r'^[0-9]{8,}$', input_str))
+
+def validate_email(input_str):
+    return bool(re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', input_str))
+
+def direction_btn(parent,text):
+    btn = ctk.CTkButton(parent, text=text, width=40, fg_color='#f6f7f7',hover_color='#eee', text_color='black', command=lambda: direction(text))
+    btn.pack(pady=10, padx=(5, 155), side='left')
+    return btn
+    
 def open_add_window(refresh_callback):
-    update_window = tk.Toplevel(background='#fff')
-    # update_window.pack()
-    update_window.title("اضافة مورد جديد")
+    add_window = tk.Toplevel(background='#fff')
+    add_window.title("اضافة مورد جديد")
 
-    
-    font_arial_title =("Arial", 16,'bold')
-    font_arial =("Arial", 14)   
-    global justify 
-    justify = 'left' 
+    font_arial_title = ("Arial", 16, 'bold')
+    font_arial = ("Arial", 14)
+    global justify
+    justify = 'left'
 
-# direction btn
-    btns_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
-    btns_frame.pack( ipady=10 , padx=20, pady=2)
-    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Fr')).pack(pady=10,padx=(5,155),side='left')
-    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Ar')).pack(pady=10,padx=(155,5),side='right')
+    # direction btn
+    btns_frame = ctk.CTkFrame(add_window, fg_color='transparent', width=400)
+    btns_frame.pack(ipady=10, padx=20, pady=2)
+    
+    direction_btn(btns_frame,'Fr').pack(pady=10, padx=(5, 155), side='left')
+    direction_btn(btns_frame,'Ar').pack(pady=10, padx=(155, 5), side='right')
+    # name
+    name_label = create_label(add_window, "اسم المورد" )
+    name_entry = create_entry(add_window)
 
-#name
-    name_label = create_label(update_window,"اسم المورد",400)
-    name_label.pack(ipady=10, pady=5, padx=20)
+    # Label d'erreur pour le nom
+    name_error_label = error_message(add_window, "")
     
-    name_entry = create_entry(update_window)
-    name_entry.pack(ipady=10, padx=20)
+    # phone
+    phone_label = create_label(add_window, "رقم الهاتف", )
+    phone_entry = create_entry(add_window)
 
-    
-#phone
-    phone_label = create_label(update_window,"رقم الهاتف",400)
-    phone_label.pack(ipady=10, pady=5, padx=20)
-    
-    phone_entry = create_entry(update_window)
-    phone_entry.pack(ipady=10 , padx=20)
-    
-    
-#email
-    email_label = create_label(update_window,"البريد الالكتروني",400)
-    email_label.pack(ipady=10, pady=5, padx=20)
-    
-    email_entry = ctk.CTkEntry(update_window, font=font_arial,
-    fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=8,width=400)
-    email_entry.pack(ipady=10 , padx=20)
-    
-#address
-    address_label = create_label(update_window,"العنوان",400)
-    address_label.pack(ipady=10, pady=5, padx=20)
-    
-    address_entry = create_entry(update_window)
-    address_entry.pack(ipady=10 , padx=20)
-    
-# labels frame
-    labs_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
-    labs_frame.pack( ipady=10 , padx=20, pady=2)
-    
-# entries frame
-    entries_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
-    entries_frame.pack( ipady=10 , padx=20, pady=2)
-    
-# credit limit
-    credit_label = create_label(labs_frame,"الحد",200)
-    credit_label.pack(ipady=10 ,pady=5, padx=(0,2),side='right')
-    
-    credit_limit = ctk.CTkEntry(entries_frame, font=font_arial, 
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=2,justify='right',width=200)
-    credit_limit.pack(ipady=10 , padx=2,side='right')
-    
-# account_id 
-    connect_db()
-    list_of_suppliers = []
-    fetch_drop(suppliers, list_of_suppliers)
+    # Label d'erreur pour le téléphone
+    phone_error_label = error_message(add_window, "")
 
-    account_label = create_label(labs_frame,"الحساب",200)
-    account_label.pack(ipady=10,pady=5 , padx=(2,0),side='left')
+    # email
+    email_label = create_label(add_window, "البريد الالكتروني", )
+    email_entry = ctk.CTkEntry(add_window, font=font_arial, fg_color='#fff', border_width=1, border_color='#ddd', corner_radius=2, width=400)
+    email_entry.pack(ipady=10, padx=20)
 
-    account_id = ctk.CTkOptionMenu(
-        entries_frame,values=list_of_suppliers,anchor='center',
-        text_color="#333",dropdown_fg_color="#fff",
-        width=200,
-        font=font_arial,
-        button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
-    )
-    account_id.pack(ipady=10 , padx=2,side='left')
-# Bouton pour sauvegarder les modifications
+    # Label d'erreur pour l'email
+    email_error_label = error_message(add_window, "")
+
+    # address
+    address_label = create_label(add_window, "العنوان", )
+    address_entry = create_entry(add_window)
+    # Label d'erreur pour l'adresse
+    address_error_label = error_message(add_window, "")
+
+
     def save_changes():
         name = name_entry.get()
         phone = phone_entry.get()
         email = email_entry.get()
         address = address_entry.get()
-        credit = credit_limit.get()
-        account = account_id.get()[0]        
+
+        # Réinitialiser les messages d'erreur
+        name_error_label.configure(text="")
+        phone_error_label.configure(text="")
+        email_error_label.configure(text="")
+        address_error_label.configure(text="")
+
+        # Validation des champs
+        has_error = False
+
+        if not validate_string(name):
+            name_error_label.configure(text="ادخل اسم صحيح (حروف فقط)")
+            has_error = True
+
+        if not validate_number(phone):
+            phone_error_label.configure(text="ادخل رقم هاتف صحيح (8 أرقام على الأقل)")
+            has_error = True
+
+        if not validate_email(email):
+            email_error_label.configure(text="ادخل بريد الكتروني صحيح")
+            has_error = True
         
+        if address == '':
+            address_error_label.configure(text="ادخل  عنوان ")
+            has_error = True      
+        if has_error:
+            return  # Ne pas continuer si une erreur est détectée
+
         try:
             connect_db()
-        
-            query = 'insert into suppliers (name,phone,email,address,credit_limit,account_id) values(%s,%s,%s,%s,%s,%s)'
-            my_cursor.execute(query,(name,phone,email,address,credit,account))
+            query = 'INSERT INTO suppliers (name, phone, email, address) VALUES (%s, %s, %s, %s)'
+            my_cursor.execute(query, (name, phone, email, address))
             connect.commit()
-            messagebox.showinfo('نجاح', ' تمت الاضافة بنجاح')
+            messagebox.showinfo('نجاح', 'تمت الاضافة بنجاح')
             refresh_callback()
-            result = messagebox.askyesno('تم الاضافة', 'هل تريد اضافة مورد جديد?' , parent=update_window)
-            if result == True:
-                name_entry.delete(0,tk.END)
+            result = messagebox.askyesno('تم الاضافة', 'هل تريد اضافة مورد جديد؟', parent=add_window)
+            if result:
+                name_entry.delete(0, tk.END)
                 phone_entry.delete(0, tk.END)
                 email_entry.delete(0, tk.END)
-                address_entry.delete(0, tk.END) 
-                credit_limit.delete(0, tk.END)
-                # update_window.destroy()  # Fermer la fenêtre de mise à jour
-                
+                address_entry.delete(0, tk.END)
         except ValueError:
             messagebox.showerror("Error", "Invalid data!")
-            return
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
 
-    ctk.CTkButton(update_window, text=" حفظ", command=save_changes,corner_radius=2,font=font_arial_title).pack(pady=10,padx=20,fill='x',ipady=5)
+    # Bouton pour sauvegarder les modifications
+    ctk.CTkButton(add_window, text=" حفظ", command=save_changes, corner_radius=2, font=font_arial_title).pack(pady=(10,15), padx=20, fill='x', ipady=5)
+
 
 justify = 'left'
 entry_widgets = []  # List to store all entry widgets
@@ -327,14 +331,21 @@ def update_entry_justification():
 def create_entry(parent):
     font_arial =("Arial", 14)   
     entry = ctk.CTkEntry(parent, justify=justify,font=font_arial, fg_color='#fff', border_width=1, border_color='#ddd', corner_radius=2, width=400)
+    entry.pack(ipady=10, padx=20)
     entry_widgets.append(entry)
     return entry
 
 # for labels
-def create_label(parent,text,wid):
-    label = ctk.CTkLabel(parent, bg_color='#f9f9f9', font=("Arial", 16,'bold'), anchor='center', text=text, width=wid)
+def create_label(parent,text):
+    label = ctk.CTkLabel(parent, bg_color='#f9f9f9', font=("Arial", 16,'bold'), anchor='center', text=text, width=400)
+    label.pack(ipady=10, pady=5, padx=20)
     label_widgets.append(label)
     return label
+
+def error_message(parent,text):
+    message = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12),height=10)
+    message.pack(padx=20,)
+    return message
 # Fonction pour afficher la fenêtre de mise à jour
 def open_update_window(supplier, update_callback):
     global entry_widgets
@@ -354,81 +365,40 @@ def open_update_window(supplier, update_callback):
     # direction btn
     btns_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
     btns_frame.pack( ipady=10 , padx=20, pady=2)
-    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',hover_color='#eee',text_color='black',command=lambda:direction('Fr')).pack(pady=10,padx=(5,155),side='left')
-    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',hover_color='#eee',text_color='black',command=lambda:direction('Ar')).pack(pady=10,padx=(155,5),side='right')
+    
+    
+    direction_btn(btns_frame,'Fr').pack(pady=10, padx=(5, 155), side='left')
+    direction_btn(btns_frame,'Ar').pack(pady=10, padx=(155, 5), side='right')
 
     #name
-    name_label = create_label(update_window,"اسم المورد",400)
-    name_label.pack(ipady=10, pady=5, padx=20)
+    name_label = create_label(update_window,"اسم المورد")
     
     name_entry = create_entry(update_window)
     name_entry.insert(0,supplier[1])
-    name_entry.pack(ipady=10, padx=20)
-
+    name_error_label = error_message(update_window, "")
     
     #phone
-    phone_label = create_label(update_window,"رقم الهاتف",400)
-    phone_label.pack(ipady=10, pady=5, padx=20)
+    phone_label = create_label(update_window,"رقم الهاتف")
     
     phone_entry = create_entry(update_window)
     phone_entry.insert(0,supplier[3])
-    phone_entry.pack(ipady=10 , padx=20)
-    
+    phone_error_label = error_message(update_window, "")
     
     #email
-    email_label = create_label(update_window,"البريد الالكتروني",400)
-    email_label.pack(ipady=10, pady=5, padx=20)
+    email_label = create_label(update_window,"البريد الالكتروني")
     
     email_entry = ctk.CTkEntry(update_window, font=font_arial, 
     fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=2,width=400)
     email_entry.insert(0,supplier[4])
     email_entry.pack(ipady=10 , padx=20)
+    email_error_label = error_message(update_window, "")
     
     #address
-    address_label = create_label(update_window,"العنوان",400)
-    address_label.pack(ipady=10, pady=5, padx=20)
-    
+    address_label = create_label(update_window,"العنوان")
     address_entry = create_entry(update_window, )
     address_entry.insert(0, supplier[5])
-    address_entry.pack(ipady=10 , padx=20)
+    address_error_label = error_message(update_window, "")
     
-    # labels frame
-    labs_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
-    labs_frame.pack( ipady=10 , padx=20, pady=2)
-    
-    # entries frame
-    entries_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
-    entries_frame.pack( ipady=10 , padx=20, pady=2)
-    # credit limit
-    credit_label = create_label(labs_frame,"الحد",200)
-    credit_label.pack(ipady=10 ,pady=5, padx=(0,2),side='right')
-    
-    credit_limit = ctk.CTkEntry(entries_frame, font=font_arial, 
-        fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=2,justify='right',width=200)
-    credit_limit.insert(0, supplier[5])
-    credit_limit.pack(ipady=10 , padx=2,side='right')
-    # account_id 
-    # category
-    connect_db()
-    list_of_suppliers = []
-    fetch_drop(suppliers, list_of_suppliers)
-    
-    credit_label = create_label(labs_frame,"الحساب",200)
-    credit_label.pack(ipady=10,pady=5 , padx=(2,0),side='left')
-    
-    account_default =f'numebe:{supp[8]}' if supp[8] else 'NULL'
-
-    # Créez une variable Tkinter StringVar
-    account = tk.StringVar(value=account_default)
-    account_id = ctk.CTkOptionMenu(
-        entries_frame,values=list_of_suppliers,anchor='center',
-        text_color="#333",dropdown_fg_color="#fff",
-        width=200,
-        font=font_arial,
-        button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
-        variable=account,
-    )
-    account_id.pack(ipady=10 , padx=2,side='left')
 
     # Bouton pour sauvegarder les modifications
     def save_changes():
@@ -436,15 +406,39 @@ def open_update_window(supplier, update_callback):
         phone = phone_entry.get()
         email = email_entry.get()
         address = address_entry.get()
-        credit = credit_limit.get()
-        account = account_id.get()[0]
         
         id = supplier[0]
         
+        # Réinitialiser les messages d'erreur
+        name_error_label.configure(text="")
+        phone_error_label.configure(text="")
+        email_error_label.configure(text="")
+        address_error_label.configure(text="")
+        # Validation des champs
+        has_error = False
+
+        if not validate_string(name):
+            name_error_label.configure(text="ادخل اسم صحيح (حروف فقط)")
+            has_error = True
+
+        if not validate_number(phone):
+            phone_error_label.configure(text="ادخل رقم هاتف صحيح (8 أرقام على الأقل)")
+            has_error = True
+
+        if not validate_email(email):
+            email_error_label.configure(text="ادخل بريد الكتروني صحيح")
+            has_error = True
+        
+        if address == '':
+            address_error_label.configure(text="ادخل  عنوان ")
+            has_error = True      
+        if has_error:
+            return
+        
         try:
             connect_db()
-            query = 'update suppliers set name=%s,phone=%s,email=%s,address=%s, credit_limit=%s,account_id=%s where id=%s'
-            my_cursor.execute(query,(name,phone,email,address,credit_limit,account,id))
+            query = 'update suppliers set name=%s,phone=%s,email=%s,address=%s  where id=%s'
+            my_cursor.execute(query,(name,phone,email,address,id))
             connect.commit()
                 
         except ValueError:
@@ -455,7 +449,7 @@ def open_update_window(supplier, update_callback):
         update_window.destroy()  # Fermer la fenêtre de mise à jour
         update_callback()
 
-    ctk.CTkButton(update_window, text=" حفظ", command=save_changes,corner_radius=2,font=font_arial_title).pack(pady=10,padx=20,ipady=5,fill='x',expand=True)
+    ctk.CTkButton(update_window, text=" حفظ", command=save_changes,corner_radius=2,font=font_arial_title).pack(pady=(10,15),padx=20,ipady=5,fill='x',expand=True)
 def fetch_supplier(supplier_id):
     connect_db()
     query = f'''
@@ -465,17 +459,6 @@ def fetch_supplier(supplier_id):
     my_cursor.execute(query, (supplier_id,))
     result = my_cursor.fetchone()
     return result
-def fetch_drop(total_variable,myList):
-    query = f'SELECT * FROM accounts'
-    total_variable.execute(query)
-    result = total_variable.fetchall()  # Utiliser fetchone() au lieu de fetchall()
-    # if result:
-    for variable in result:
-        
-        myList.append(f'{variable[0]}-{variable[1]}')
-        # return variable[1]  # Retourner le premier (et seul) élément du tuple
-    return myList  # Retourner 0 si aucun résultat n'est trouvé   
-
 
 def delete_supplier(supplier_id, update_callback):
     connect_db()
@@ -532,9 +515,9 @@ def show_title_frame(parent,refresh_callback ):
         # image=add_image,
         text="اضافة مورد ",
         font=('Arial',14,),
-        fg_color="#0b0d0e",hover=False,
+        fg_color="#333",hover=False,
         text_color="#fff",
-        corner_radius=2,width=50,
+        corner_radius=3,width=50,
         command=lambda: open_add_window(refresh_callback)
     )
     add_supplier_button.pack(side="left", padx=1, pady=5, ipadx=5, ipady=5)
@@ -542,12 +525,33 @@ def show_title_frame(parent,refresh_callback ):
 
 
 # Function to create the suppliers frame
-def create_suppliers_frame(root,user=None):
+# def create_suppliers_frame(root,user=None):
+#     suppliers_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
+
+#     show_suppliers_table(suppliers_frame,is_admin = user[4] if user else 0)
+#     return suppliers_frame
+
+def create_suppliers_frame(root):
     suppliers_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
 
-    show_suppliers_table(suppliers_frame,is_admin = user[2] if user else 0)
-    return suppliers_frame
 
+    # Frame pour le tableau des catégories
+    table_frame = ctk.CTkFrame(suppliers_frame, fg_color="#fff")
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    def set_user(user):
+        # Nettoyer la frame avant d'afficher un nouveau tableau
+        for widget in table_frame.winfo_children():
+            widget.destroy()
+
+        # Afficher le tableau des catégories en fonction de l'utilisateur
+        is_admin = user[4] if user else 0
+        show_suppliers_table(table_frame, is_admin=is_admin)
+
+    # Ajouter la méthode set_user à la frame
+    suppliers_frame.set_user = set_user
+
+    return suppliers_frame
 # window = ctk.CTk(fg_color="#fff")
 # window.title('customtkinter app')
 # window.geometry('1200x550')

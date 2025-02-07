@@ -29,6 +29,26 @@ def fetch_customers(limit=10, offset=0):
     my_cursor.execute(query)
     return my_cursor.fetchall()
 
+def direction_btn(parent,text):
+    btn = ctk.CTkButton(parent, text=text, width=40, fg_color='#f6f7f7',hover_color='#eee', text_color='black', command=lambda: direction(text))
+    return btn
+
+def error_message(parent,text):
+    message = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12),height=10)
+    return message
+
+import re 
+# Fonctions de validation
+def validate_string(input_str):
+    return bool(re.match(r'^[A-Za-z\s]+$', input_str))
+
+def validate_number(input_str):
+    # Vérifie que l'entrée contient uniquement des chiffres et a une longueur d'au moins 5
+    return bool(re.match(r'^[0-9]{8,}$', input_str))
+
+def validate_email(input_str):
+    return bool(re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', input_str))
+
 # fenetere pour ajouter une categorie
 def open_add_window(refresh_callback):
     add_window = tk.Toplevel(background='#fff')
@@ -41,26 +61,39 @@ def open_add_window(refresh_callback):
     # direction btn
     btns_frame = ctk.CTkFrame(add_window,fg_color='transparent',width=400)
     btns_frame.pack( ipady=10 , padx=20, pady=2)
-    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',hover_color='#fff',text_color='black',command=lambda:direction('Fr')).pack(pady=1,padx=(5,155),side='left')
-    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',hover_color='#fff',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
+
+    direction_btn(btns_frame,'Fr').pack(pady=(10,0), padx=(5, 155), side='left')
+    direction_btn(btns_frame,'Ar').pack(pady=(10,0), padx=(155, 5), side='right')
     # name 
-    create_label(add_window,"اسم العميل").pack(ipady=10 ,pady=5, padx=20,fill='x')
+    create_label(add_window,"اسم العميل").pack(ipady=5 ,pady=5, padx=20,fill='x')
     name_entry = create_entry(add_window)
+    
+    name_error = error_message(add_window,"")
+    name_error.pack( padx=20,fill='x')
 
     # phone 
-    create_label(add_window,"هاتف العميل").pack(ipady=10 ,pady=5, padx=20,fill='x')
+    create_label(add_window,"هاتف العميل").pack(ipady=5 ,pady=5, padx=20,fill='x')
     phone_entry = create_entry(add_window)
+    
+    phone_error = error_message(add_window,"")
+    phone_error.pack( padx=20,fill='x')
 
     
     # email 
-    create_label(add_window,"البريد الالكتروني").pack(ipady=10 ,pady=5, padx=20,fill='x')
+    create_label(add_window,"البريد الالكتروني").pack(ipady=5 ,pady=5, padx=20,fill='x')
     email_entry = ctk.CTkEntry(add_window,font=font_arial, fg_color='#fff', 
             border_width=1, border_color='#ddd', corner_radius=8, width=400)
     email_entry.pack(ipady=10 , padx=20)
     
+    email_error = error_message(add_window,"")
+    email_error.pack( padx=20,fill='x')
+    
     # address 
-    create_label(add_window,"العنوان").pack(ipady=10 ,pady=5, padx=20,fill='x')
+    create_label(add_window,"العنوان").pack(ipady=5 ,pady=5, padx=20,fill='x')
     address_entry = create_entry(add_window)
+    
+    address_error = error_message(add_window,"")
+    address_error.pack( padx=20,fill='x')
     
     # labels frame
     labels_frame = ctk.CTkFrame(add_window,fg_color='transparent',)
@@ -70,13 +103,13 @@ def open_add_window(refresh_callback):
     entries_frame = ctk.CTkFrame(add_window,fg_color='transparent',width=400)
     entries_frame.pack( ipady=10 , padx=20, pady=2)
     # balance
-    create_label(labels_frame,"الرصيد").pack(ipady=10 ,pady=5, fill='x',side='right')
+    create_label(labels_frame,"الرصيد").pack(ipady=5 ,pady=5, fill='x',side='right')
     balance_entry = create_entry(entries_frame,200)
     balance_entry.pack(ipady=10 , padx=20,side='right')
 
     
     # is_active 
-    create_label(labels_frame,"الحالة").pack(ipady=10 ,pady=5, fill='x',side='left')
+    create_label(labels_frame,"الحالة").pack(ipady=5 ,pady=5, fill='x',side='left')
     is_active = ['0-غير مفعل','1-مفعل']
 
     is_active_entry = ctk.CTkOptionMenu(
@@ -92,13 +125,36 @@ def open_add_window(refresh_callback):
         phone = phone_entry.get()
         email = email_entry.get()
         address = address_entry.get()
-        balance = float(balance_entry.get())
+        balance = (balance_entry.get())
         int(is_active_entry.get()[0])
         is_active = int(is_active_entry.get()[0])
         
         # Validation des informations de connexion
-        if name == "" or phone == "" or email == "" or address == "" :
-            messagebox.showerror("Error", "Please fill all the fields")
+        name_error.configure(text="")
+        phone_error.configure(text="")
+        email_error.configure(text="")
+        address_error.configure(text="")
+        has_error = False
+        
+        if name == '':
+            name_error.configure(text="ادخل اسم صحيح (حروف فقط)")
+            has_error = True
+            
+        if not validate_number(phone):
+            phone_error.configure(text="ادخل رقم صحيح (بدون مسافات)")
+            has_error = True
+            
+        if not validate_email(email):
+            email_error.configure(text="ادخل بريد الكتروني صحيح")
+            has_error = True
+            
+        if address == '':
+            address_error.configure(text="ادخل عنوان صحيح")
+            has_error = True
+            
+        if has_error:
+            return
+
         else:
             try:
                 connect_db()
@@ -129,7 +185,7 @@ def open_add_window(refresh_callback):
         width=400,
         command=add_customers,font=font_arial_title,corner_radius=2
             )
-    add_button.pack(pady=10,padx=20,ipady=10)
+    add_button.pack(pady=5,padx=20,ipady=8)
     # ctk.CTkButton(update_window, text="Add", command=save_changes).pack(pady=10)
 
 # Fonction pour afficher la fenêtre de mise à jour
@@ -145,47 +201,59 @@ def open_update_window(customer, update_callback):
     # direction btn
     btns_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
     btns_frame.pack( ipady=10 , padx=20, pady=2)
-    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',hover_color='#fff',text_color='black',command=lambda:direction('Fr')).pack(pady=1,padx=(5,155),side='left')
-    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',hover_color='#fff',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
+    
+    direction_btn(btns_frame,'Fr').pack(pady=(10,0), padx=(5, 155), side='left')
+    direction_btn(btns_frame,'Ar').pack(pady=(10,0), padx=(155, 5), side='right')
+    
     # name 
-    create_label(update_window,"اسم العميل").pack(ipady=10 ,pady=5, padx=20,fill='x')
+    create_label(update_window,"اسم العميل").pack(ipady=5 ,pady=5, padx=20,fill='x')
     name_entry = create_entry(update_window)
     name_entry.insert(0, custom[1])  # Pré-remplir avec la valeur actuelle
 
+    name_error = error_message(update_window, "")
+    name_error.pack(pady=5, padx=20,fill='x')
     # phone 
-    create_label(update_window,"هاتف العميل").pack(ipady=10 ,pady=5, padx=20,fill='x')
+    create_label(update_window,"هاتف العميل").pack(ipady=5 ,pady=5, padx=20,fill='x')
     phone_entry = create_entry(update_window)
     phone_entry.insert(0, custom[2])
-
     
+    phone_error = error_message(update_window, "")
+    phone_error.pack(pady=5, padx=20,fill='x')
+
     # email 
-    create_label(update_window,"البريد الالكتروني").pack(ipady=10 ,pady=5, padx=20,fill='x')
+    create_label(update_window,"البريد الالكتروني").pack(ipady=5 ,pady=5, padx=20,fill='x')
     email_entry = ctk.CTkEntry(update_window,font=font_arial, fg_color='#fff', 
             border_width=1, border_color='#ddd', corner_radius=8, width=400)
     email_entry.insert(0, custom[3])  # Pré-remplir avec la valeur actuelle
-    email_entry.pack(ipady=10 , padx=20)
+    email_entry.pack(ipady=5 , padx=20)
+    
+    email_error = error_message(update_window, "")
+    email_error.pack(pady=5, padx=20,fill='x')
     
     # address 
-    create_label(update_window,"العنوان").pack(ipady=10 ,pady=5, padx=20,fill='x')
+    create_label(update_window,"العنوان").pack(ipady=5 ,pady=5, padx=20,fill='x')
     address_entry = create_entry(update_window)
-    address_entry.insert(0, custom[4])  # Pré-remplir avec la valeur actuelle
+    address_entry.insert(0, custom[4]) 
+    
+    address_error = error_message(update_window, "")
+    address_error.pack(pady=5, padx=20,fill='x')
     
     # labels frame
     labels_frame = ctk.CTkFrame(update_window,fg_color='transparent',)
-    labels_frame.pack( ipady=10 , padx=20, pady=2)
+    labels_frame.pack( ipady=5 , padx=20, pady=2)
     
     # entries frame
     entries_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
-    entries_frame.pack( ipady=10 , padx=20, pady=2)
+    entries_frame.pack( ipady=5 , padx=20, pady=2)
     # balance
-    create_label(labels_frame,"الرصيد").pack(ipady=10 ,pady=5, fill='x',side='right')
+    create_label(labels_frame,"الرصيد").pack(ipady=5 ,pady=5, fill='x',side='right')
     balance_entry = create_entry(entries_frame,200)
     balance_entry.insert(0, custom[6] if custom[6] else 'NULL')
-    balance_entry.pack(ipady=10 , padx=20,side='right')
+    balance_entry.pack(ipady=5 , padx=20,side='right')
 
     
     # is_active 
-    create_label(labels_frame,"الحالة").pack(ipady=10 ,pady=5, fill='x',side='left')
+    create_label(labels_frame,"الحالة").pack(ipady=5 ,pady=5, fill='x',side='left')
     is_active = ['0-غير مفعل','1-مفعل']
     default_value = is_active[1] if custom[7] == 1 else is_active[0]
     # Create a StringVar to hold the selected value
@@ -210,7 +278,32 @@ def open_update_window(customer, update_callback):
         balance = balance_entry.get()
         is_active = is_active_entry.get()[0]
         id = customer[0]
+
+        # Validation des informations de connexion
+        name_error.configure(text="")
+        phone_error.configure(text="")
+        email_error.configure(text="")
+        address_error.configure(text="")
+        has_error = False
         
+        if name == '':
+            name_error.configure(text="ادخل اسم صحيح (حروف فقط)")
+            has_error = True
+            
+        if not validate_number(phone):
+            phone_error.configure(text="ادخل رقم صحيح (بدون مسافات)")
+            has_error = True
+            
+        if not validate_email(email):
+            email_error.configure(text="ادخل بريد الكتروني صحيح")
+            has_error = True
+            
+        if address == '':
+            address_error.configure(text="ادخل عنوان صحيح")
+            has_error = True
+            
+        if has_error:
+            return        
         try:
             connect_db()
             query = '''UPDATE `customers` SET `name`=%s, `phone`=%s, `email`=%s, `address`=%s, `balance`=%s, `is_active`=%s WHERE `id`=%s'''
@@ -510,13 +603,34 @@ def create_label(parent,text,wid=200):
 
 
 # Function to create the customers frame
-def create_customers_frame(root,user=None):
+# def create_customers_frame(root,user=None):
+#     customers_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
+
+
+#     show_customers_table(customers_frame,is_admin = user[4] if user else 0)
+#     return customers_frame
+
+def create_customers_frame(root):
     customers_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
 
 
-    show_customers_table(customers_frame,is_admin = user[2] if user else 0)
-    return customers_frame
+    # Frame pour le tableau des catégories
+    table_frame = ctk.CTkFrame(customers_frame, fg_color="#fff")
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
+    def set_user(user):
+        # Nettoyer la frame avant d'afficher un nouveau tableau
+        for widget in table_frame.winfo_children():
+            widget.destroy()
+
+        # Afficher le tableau des catégories en fonction de l'utilisateur
+        is_admin = user[4] if user else 0
+        show_customers_table(table_frame, is_admin=is_admin)
+
+    # Ajouter la méthode set_user à la frame
+    customers_frame.set_user = set_user
+
+    return customers_frame
 
 
 # window = ctk.CTk(fg_color="#fff")

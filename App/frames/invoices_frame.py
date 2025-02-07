@@ -77,6 +77,7 @@ def delete_sale(sale_id, update_callback):
 search_results = []
 offset = 0
 
+
 # Function to show sales as a styled table with pagination
 def show_sales_table(root,parent,user=None, limit=10,is_admin=1):
     
@@ -182,7 +183,7 @@ def show_sales_table(root,parent,user=None, limit=10,is_admin=1):
     offset = 0
 
     # Search Frame
-    search_frame(root,parent, lambda: update_table(),offset)  # Appelle `update_table` comme callback
+    search_frame(root,parent, lambda: update_table(),offset,limit)  # Appelle `update_table` comme callback
     # SELECT s.id,c.name,s.reference_number,s.payment_method,s.total_amount,s.discount,s.final_amount,s.date
     columns = ('رقم القطعة ', 'اسم العميل ', 'رقم الفاتورة', 'طريقة الدفع', ' الكمية',  'المبلغ النهائي', 'التاريخ')
     columns = columns[::-1]
@@ -260,7 +261,7 @@ def show_sales_table(root,parent,user=None, limit=10,is_admin=1):
     next_button.pack(side="right", padx=5)
 
     update_table()
-def search_frame(root,parent, refresh_callback,offset):
+def search_frame(root,parent, refresh_callback,offset,limit):
     """Crée une barre de recherche avec options."""
     s_frame = ctk.CTkFrame(parent, corner_radius=10, fg_color="white")
     s_frame.pack(fill='x', padx=20, pady=5)
@@ -270,14 +271,14 @@ def search_frame(root,parent, refresh_callback,offset):
     font_arial = ('Arial',18,)
     search_entry = ctk.CTkEntry(
         s_frame,
-        placeholder_text="إبحث عن منتج ",
+        placeholder_text="إبحث عن اسم العميل او رقم الفاتورة او طريقة الدفع ",
         fg_color="white",
         bg_color="white",
         border_color="#e5e3e0",
         border_width=1,
         width=300,
         corner_radius=0,
-        font=font_arial,
+        font=('Arial',15,),
         justify="right"
     )
     search_entry.pack(side="right",  pady=5, ipadx=5, ipady=5)
@@ -295,9 +296,9 @@ def search_frame(root,parent, refresh_callback,offset):
         text="",width=24,
         font=font_arial,
         # height=22,
-        command=lambda: search(search_entry.get(),refresh_callback)
+        command=lambda: search(search_entry.get(),refresh_callback,limit,offset)
     )
-    search_button.pack(side="right", padx=(100,0), pady=5, ipadx=5, ipady=5)
+    search_button.pack(side="right", pady=5, ipadx=5, ipady=5)
 
         # Option Menus
     image_path = os.path.join(os.path.dirname(__file__), "images", "refresh.png")
@@ -316,25 +317,7 @@ def search_frame(root,parent, refresh_callback,offset):
         command=lambda: refresh(refresh_callback),compound="left"
     )
     
-        
-    add_image_path = os.path.join(os.path.dirname(__file__), "images", "add.png")
-    
-    add_image = ctk.CTkImage(light_image=Image.open(add_image_path), size=(15, 15),)
-    add_sale_button = ctk.CTkButton(
-        master=s_frame,
-        # image=add_image,
-        text=" اضافة فاتورة ",
-        font=font_arial,
-        width=40,
-        text_color="#fff",
-        fg_color="#0b0d0e",hover=False,
-        corner_radius=2,
-        # command=lambda: details_and_update(refresh_callback)
-    )
-    # add_sale_button.pack(side="left", padx=5, pady=5, ipadx=5, ipady=5)
     refresh_button.pack(side="left", padx=5, pady=5, ipadx=5, ipady=5)
-    
-    
         
 
 def refresh(refresh_callback):
@@ -342,7 +325,7 @@ def refresh(refresh_callback):
     search_results = []
     # Appeler la fonction de rafraîchissement pour afficher les données à partir de la base de données
     refresh_callback()
-def search(query,refresh_callback):
+def search(query,refresh_callback,limit=10, offset=0):
     global search_results  # Déclarer `search_results` comme global
     if not query:
         messagebox.showinfo('تنبيه', 'لا يمكنك البحث عن نتيجة فارغة')
@@ -350,14 +333,26 @@ def search(query,refresh_callback):
     else:
         connect_db()
         sql_query = '''
-        SELECT p.id,p.name,c.name,p.price,w.name,p.min_quantity,w.location
-        FROM sales p JOIN sale_categories c ON p.category_id = c.id JOIN warehouses w ON p.warehouse_id = w.id 
-        WHERE p.name = %s OR c.name = %s OR w.name = %s OR w.location = %s
-        LIMIT 10
+        SELECT 
+        s.id,
+        c.name,
+        s.reference_number,
+        s.payment_method,
+        sum(si.quantity),
+        sum(si.subtotal),
+        DATE(s.date)
+        FROM 
+        sales s 
+        JOIN customers c ON s.customer_id = c.id 
+        LEFT JOIN sale_items si ON s.id = si.sale_id
+        where s.reference_number = %s or c.name = %s or s.payment_method = %s 
+        GROUP BY 
+        s.id
+        order by (s.date)
         '''
         # query = f'SELECT p.id,p.name,c.name,p.price,w.name,p.min_quantity,w.location FROM sales p JOIN sale_categories c ON p.category_id = c.id JOIN warehouses w ON p.warehouse_id = w.id LIMIT {limit} OFFSET {offset}'
         
-        my_cursor.execute(sql_query, (query, query,query,query))
+        my_cursor.execute(sql_query, (query, query,query))
         search_results = my_cursor.fetchall()  # Récupérer les résultats
         refresh_callback()  # Appeler la fonction de rafraîchissement pour afficher les nouvelles données
 
@@ -428,6 +423,73 @@ def fetch_drop(table_name,total_variable,myList):
     return myList  # Retourner 0 si aucun résultat n'est trouvé   
 
 
+import pandas as pd
+def export_to_excel():
+    connect_db()
+    query = f'''
+    SELECT 
+    s.id,
+    c.name as  العميل,
+    s.reference_number as رقم_الفاتورة,
+    s.payment_method as طريقة_الدفع,
+    sum(si.quantity) as الكمية,
+    sum(si.subtotal) as المبلغ,
+    DATE(s.date) as تاريخ
+    FROM 
+    sales s 
+    JOIN customers c ON s.customer_id = c.id 
+    LEFT JOIN sale_items si ON s.id = si.sale_id
+    GROUP BY 
+    s.id
+    order by (s.date)'''
+    df = pd.read_sql(query, connect)
+    df.to_excel('invoices.xlsx', index=False)
+    messagebox.showinfo('نجاح في التصدير', ' لقد تم تصدير البيانات بنجاح في "products.xlsx".')
+
+from tkinter import filedialog
+
+def import_from_excel():
+    try:
+        # Open file dialog to select Excel file
+        file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx;*.xls")])
+        
+        if not file_path:
+            return  # User cancelled file selection
+
+        # Read Excel file
+        df = pd.read_excel(file_path)
+
+        # Connect to database
+        connect_db()
+
+        # Iterate through rows and insert/update data
+        for index, row in df.iterrows():
+            print('rows:', index,row)
+            query = """
+            INSERT INTO products (name, description, price, purchase_price, category_id, supplier_id, 
+                                  warehouse_id,  code,  selling_price, quantity, min_quantity,created_at, is_active)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,NOW(),0)
+            """
+            
+            values = (
+                row['name'], row['description'], row['price'], row['purchase_price'],
+                row['category_id'], row['supplier_id'], row['warehouse_id'],
+                row['code'], row['selling_price'], row['quantity'],
+                row['min_quantity']
+            )
+            print('Values:', values)
+            
+            my_cursor.execute(query, values)
+
+        connect.commit()
+        messagebox.showinfo('نجاح', ' تمت الاستيراد بنجاح')
+    except Exception as e:
+        messagebox.showerror("خطأ في الاستيراد", f"حدث خطأ في الاستيراد الخطأ : {str(e)}")
+    finally:
+        if connect:
+            connect.close()
+
+
 def show_title_frame(parent, ):
     
     # Table headers
@@ -443,24 +505,72 @@ def show_title_frame(parent, ):
 
     title_label = ctk.CTkLabel(
         master=title_frame,
-        text="ادارة المنتجات",
+        text="ادارة المبيعات",
         font=font_arial_title,
     )
     title_label.pack(side="right")
     
+    
+    export_button = ctk.CTkButton(
+        master=title_frame,
+        text=" Excel تصدير إلى ",
+        font=font_arial,
+        fg_color="#3eecfa",
+        text_color="#333",
+        hover_color="#f0f0f0",
+        corner_radius=2,
+        command=export_to_excel
+    )
+    # export_button.pack(pady=10,anchor="e",padx=(10,40),)
+
+    import_button = ctk.CTkButton(
+        master=title_frame,
+        text=" Excel استيراد من ",
+        font=font_arial,
+        fg_color="#09d666",
+        text_color="#333",
+        hover_color="#f0f0f0",
+        corner_radius=2,
+        command=import_from_excel
+    )    # import_button.pack(pady=10,anchor="e",padx=(10,40),)
+
+    # import_button.grid(row=0, column=1, sticky="e", padx=5, pady=5)
+    import_button.pack(side="left",padx=5)
+    export_button.pack(side="left")
 
 
+    
+# def create_sales_frame(root,user=None):
+#     sales_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
 
-def create_sales_frame(root,user=None):
+#     show_title_frame(sales_frame)
+
+#     show_sales_table(root,sales_frame,user=user,is_admin = user[4] if user else 0)
+#     return sales_frame
+
+def create_sales_frame(root):
     sales_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
 
+    # Titre
     show_title_frame(sales_frame)
-    print('User:',user[0]) if user else None
 
-    show_sales_table(root,sales_frame,user=user,is_admin = user[2] if user else 0)
+    # Frame pour le tableau des catégories
+    table_frame = ctk.CTkFrame(sales_frame, fg_color="#fff")
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    def set_user(user):
+        # Nettoyer la frame avant d'afficher un nouveau tableau
+        for widget in table_frame.winfo_children():
+            widget.destroy()
+
+        # Afficher le tableau des catégories en fonction de l'utilisateur
+        is_admin = user[4] if user else 0
+        show_sales_table(root,table_frame, is_admin=is_admin)
+
+    # Ajouter la méthode set_user à la frame
+    sales_frame.set_user = set_user
+
     return sales_frame
-
-
         
 def fetch_total(table_name,total_variable,myList):
     query = f'SELECT * FROM {table_name}'
@@ -531,6 +641,12 @@ def create_entry1(parent,wid=200):
                         border_color='#ddd', corner_radius=1, width=100,textvariable=var_change)
     entry1_widget.append(entry)
     return entry
+
+import re
+def error_message(parent,text):
+    message = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12),height=10)
+    return message
+
 def open_update_window(sale, update_callback):
     update_window = tk.Toplevel(background='#fff')
     # update_window.pack()
@@ -592,37 +708,57 @@ def open_update_window(sale, update_callback):
     # second frame entries
     second_frame_entry = ctk.CTkFrame(frame,fg_color='transparent',width=400)
     second_frame_entry.pack(ipady=10 , padx=20,fill='x')
-    
 
     # status
+    print("status Sale:",sale)
     create_label(second_frame," الحالة").pack(ipady=10 , fill='x',expand = True,side='right')    
     status_entry = create_entry(second_frame_entry)
-    status_entry.insert(0, sale[6])
+    status_entry.insert(0, sale[3])
     status_entry.pack(ipady=10 , padx=2,fill='x',expand = True,side='right')
     
     # pay method
     create_label(second_frame,"طريقة الدفع").pack(ipady=10 , fill='x',expand = True,side='left')
     
     payment_method_entry = create_entry(second_frame_entry)
-    payment_method_entry.insert(0, sale[7])
+    payment_method_entry.insert(0, sale[4])
     payment_method_entry.pack(ipady=10 , padx=2,fill='x',expand = True,side='left')
 
+    
+    error_frame = ctk.CTkFrame(frame,fg_color='transparent',width=400,height=20)
+    error_frame.pack(ipady=10 , padx=20,fill='x')
+    
+    
+    # Label d'erreur pour le nom
+    status_error_label = error_message(error_frame,"")
+    status_error_label.pack( padx=2,fill='x',expand = True,side='right')
 
+    # Label d'erreur pour le nom
+    payment_method_error_label = error_message(error_frame,"")
+    payment_method_error_label.pack( padx=2,fill='x',expand = True,side='left')
+    
     # payment_method and reference_number
     create_label(frame,"رقم الفاتورة").pack(ipady=10 , padx=20,fill='x',pady=5)
     
     reference_number_entry = create_entry(frame)
-    reference_number_entry.insert(0, sale[8])
+    reference_number_entry.insert(0, sale[5])
     reference_number_entry.pack(ipady=10 , fill='x',pady=5,padx=20,)
     
+    
+    ref_num_error = error_message(frame, "")
+    ref_num_error.pack( fill='x',pady=5,padx=20,)
     # note
     create_label(frame,"ملاحظات").pack(ipady=10 , padx=20,fill='x',pady=5)
     
     note_entry = create_entry(frame)
-    note_entry.insert(0, sale[9])
+    note_entry.insert(0, sale[6])
     note_entry.pack(ipady=10 , fill='x',pady=(5,0),padx=20,)
     
     # Bouton pour sauvegarder les modifications
+    def validate_string(input_str):
+        # Cette regex vérifie que l'entrée contient uniquement des lettres et des espaces
+        return bool(re.match(r'^[A-Za-z\s]+$', input_str))
+
+
     def save_changes():
         customer = customer_entry.get()[0]
         date = date_entry.get_date().strftime('%Y-%m-%d') if date_entry.get_date() else None
@@ -632,6 +768,32 @@ def open_update_window(sale, update_callback):
         note = note_entry.get()
         sale_id = sale[0]
         
+        # Réinitialiser les messages d'erreur
+        status_error_label.configure(text="")
+        payment_method_error_label.configure(text="")
+        ref_num_error.configure(text="")
+        
+        # Validation des champs
+        has_error = False
+        
+        # Validation du champ "status"
+        if not validate_string(status):
+            status_error_label.configure(text="ادخل حالة صحيح (حروف فقط)")
+            has_error = True
+        
+        # Validation du champ "payment_method"
+        if not validate_string(payment_method):
+            payment_method_error_label.configure(text="ادخل طريقة الدفع صحيحة (حروف فقط)")
+            has_error = True
+        
+        if reference_number == '':
+            ref_num_error.configure(text="ادخل رقم المرجع")
+            has_error = True
+        
+
+        # Si une erreur est détectée, arrêter la fonction
+        if has_error:
+            return
         
         try:
             connect_db()

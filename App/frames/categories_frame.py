@@ -43,11 +43,15 @@ def open_add_window(refresh_callback):
     # direction btn
     btns_frame = ctk.CTkFrame(add_window,fg_color='transparent',width=400)
     btns_frame.pack( ipady=10 , padx=20, pady=2)
-    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Fr')).pack(pady=1,padx=(5,155),side='left')
-    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
+    direction_btn(btns_frame,'Fr').pack(pady=10, padx=(5, 155), side='left')
+    direction_btn(btns_frame,'Ar').pack(pady=10, padx=(155, 5), side='right')
+    
     # name 
     create_label(add_window,"اسم الفئة").pack(ipady=10 ,pady=5, padx=20,fill='x')
     name_entry = create_entry(add_window)
+    
+    name_error = error_message(add_window, "")
+    name_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
 
     # desc 
     create_label(add_window,"وصف الفئة").pack(ipady=10 ,pady=5, padx=20,fill='x')
@@ -55,30 +59,46 @@ def open_add_window(refresh_callback):
         fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=2,width=400,)
     desc_entry.pack(ipady=10 , padx=20,)
     
+    desc_error = error_message(add_window, "")
+    desc_error.pack(ipady=10 ,pady=5, padx=20,fill='x')    
+    
     def add_categories():
         name = name_entry.get()
         description = desc_entry.get(index1='0.0', index2='end')
         
+        name_error.configure(text="")
+        desc_error.configure(text="")
+        has_error = False
+
+        
         # Validation des informations de connexion
-        if name == "" or description == "" :
-            messagebox.showerror("Error", "Please fill all the fields")
-        else:
-            try:
-                
-                connect_db()
-                query = 'insert into product_categories values(null,%s,%s,%s)'
-                my_cursor.execute(query,(name, description, datetime.now()))
-                connect.commit()
-                messagebox.showinfo('نجاح', 'تم اضافة الفئة بنجاح')
-                refresh_callback()
-                
-                result = messagebox.askyesno('تم الاضافة', 'هل تريد اضافة فئة جديد?' , parent=add_window)
-                if result == True:
-                    name_entry.delete(0,tk.END)
-                    desc_entry.delete(1.0, tk.END)
-                    # add_window.destroy()
-            except Exception as e:
-                messagebox.showerror('Error', str(e))
+        if name == "":
+            name_error.configure(text="ادخل اسم الفئة")
+            has_error = True
+
+        if description == "":
+            desc_error.configure(text="ادخل وصف الفئة")
+            has_error = True
+
+        if has_error:
+            return
+
+        try:
+            print('Here')
+            connect_db()
+            query = 'insert into product_categories values(null,%s,%s,%s)'
+            my_cursor.execute(query,(name, description, datetime.now()))
+            connect.commit()
+            messagebox.showinfo('نجاح', 'تم اضافة الفئة بنجاح')
+            refresh_callback()
+            
+            result = messagebox.askyesno('تم الاضافة', 'هل تريد اضافة فئة جديد?' , parent=add_window)
+            if result == True:
+                name_entry.delete(0,tk.END)
+                desc_entry.delete(1.0, tk.END)
+                # add_window.destroy()
+        except Exception as e:
+            messagebox.showerror('Error', str(e))
             
 
     add_button = ctk.CTkButton(
@@ -106,18 +126,24 @@ def open_update_window(category, update_callback):
 # direction btn
     btns_frame = ctk.CTkFrame(update_window,fg_color='transparent',width=400)
     btns_frame.pack( ipady=10 , padx=20, pady=2)
-    ctk.CTkButton(btns_frame, text="Fr",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Fr')).pack(pady=1,padx=(5,155),side='left')
-    ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
+    direction_btn(btns_frame,'Fr').pack(pady=10, padx=(5, 155), side='left')
+    direction_btn(btns_frame,'Ar').pack(pady=10, padx=(155, 5), side='right')
     # name 
     create_label(update_window,"اسم الفئة").pack(ipady=10 ,pady=5, padx=20,fill='x')
     name_entry = create_entry(update_window)
-    name_entry.insert(0, categ[1])  # Pré-remplir avec la valeur actuelle
+    name_entry.insert(0, categ[1])  
+    
+    name_error = error_message(update_window, "")
+    name_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
 
     # desc 
     create_label(update_window,"وصف الفئة").pack(ipady=10 ,pady=5, padx=20,fill='x')
+    desc_error = error_message(update_window, "")
+    desc_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
+    
     desc_entry = ctk.CTkTextbox(update_window, font=font_arial, 
         fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=2,width=400,)
-    desc_entry.insert(index='0.0', text=categ[2])  # Pré-remplir avec la valeur actuelle
+    desc_entry.insert(index='0.0', text=categ[2])  
     desc_entry.pack(ipady=10 , padx=20,)
     
     # Bouton pour sauvegarder les modifications
@@ -126,6 +152,24 @@ def open_update_window(category, update_callback):
         description = desc_entry.get(index1='0.0', index2='end')
         id = category[0]
         
+        
+        name_error.configure(text="")
+        desc_error.configure(text="")
+        has_error = False
+
+        
+        # Validation des informations de connexion
+        if name == "":
+            name_error.configure(text="ادخل اسم الفئة")
+            has_error = True
+
+        if description == "":
+            print('Error',description)
+            desc_error.configure(text="ادخل وصف الفئة")
+            has_error = True
+
+        if has_error:
+            return
         try:
             connect_db()
             query = 'update product_categories set name=%s, description=%s,created_at=NOW() where id=%s'
@@ -433,16 +477,47 @@ def create_label(parent,text):
     label_widgets.append(label)
     return label
 
+def error_message(parent,text):
+    message = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12),height=10)
+    return message
+
+def direction_btn(parent,text):
+    btn = ctk.CTkButton(parent, text=text, width=40, fg_color='#f6f7f7',hover_color='#eee', text_color='black', command=lambda: direction(text))
+    btn.pack(pady=10, padx=(5, 155), side='left')
+    return btn
+
+
 
 # Function to create the categories frame
-def create_categories_frame(root,user=None):
-    categories_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
+# def create_categories_frame(root,user=None):
+#     categories_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
     
-    show_categories_table(categories_frame,is_admin = user[2] if user else 0)
+#     show_categories_table(categories_frame,is_admin = user[4] if user else 0)
+#     return categories_frame
+
+def create_categories_frame(root):
+    categories_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
+
+    # Titre
+    # show_title_frame(categories_frame)
+
+    # Frame pour le tableau des catégories
+    table_frame = ctk.CTkFrame(categories_frame, fg_color="#fff")
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    def set_user(user):
+        # Nettoyer la frame avant d'afficher un nouveau tableau
+        for widget in table_frame.winfo_children():
+            widget.destroy()
+
+        # Afficher le tableau des catégories en fonction de l'utilisateur
+        is_admin = user[4] if user else 0
+        show_categories_table(table_frame, is_admin=is_admin)
+
+    # Ajouter la méthode set_user à la frame
+    categories_frame.set_user = set_user
+
     return categories_frame
-
-
-
 # window = ctk.CTk(fg_color="#fff")
 # window.title('customtkinter app')
 # window.geometry('1200x550')

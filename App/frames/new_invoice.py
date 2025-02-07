@@ -4,6 +4,7 @@ from tkinter import messagebox
 import pymysql
 import os
 from PIL import Image, ImageTk
+import re  # Ajoutez cette ligne en haut de votre fichier
 def connect_db():
     try:
         # create a connection object
@@ -137,6 +138,10 @@ def update_entry():
 
 # for entries
 change_value = 0
+
+def error_message(parent,text):
+    message = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12),height=10)
+    return message
 def create_entry1(parent,wid=200):
     var_change = tk.StringVar(value=change_value) 
     entry = ctk.CTkEntry(parent,font=("Arial", 14), fg_color='#fff', border_width=1,justify='center',
@@ -208,15 +213,19 @@ def create_add_sale_frame(root,user=None,sale=None):
     second_frame = ctk.CTkFrame(add_sale_frame,fg_color='transparent',width=400)
     second_frame.pack(ipady=10 , padx=20,fill='x')
     
+    
     # second frame entries
     second_frame_entry = ctk.CTkFrame(add_sale_frame,fg_color='transparent',width=400)
     second_frame_entry.pack(ipady=10 , padx=20,fill='x')
     
+    error_frame = ctk.CTkFrame(add_sale_frame,fg_color='transparent',width=400,height=20)
+    error_frame.pack(ipady=10 , padx=20,fill='x')
 
     # status
     create_label(second_frame," الحالة").pack(ipady=10 , fill='x',expand = True,side='right')    
     status_entry = create_entry(second_frame_entry)
     status_entry.pack(ipady=10 , padx=2,fill='x',expand = True,side='right')
+    
     
     # pay method
     create_label(second_frame,"طريقة الدفع").pack(ipady=10 , fill='x',expand = True,side='left')
@@ -224,6 +233,14 @@ def create_add_sale_frame(root,user=None,sale=None):
     payment_method_entry = create_entry(second_frame_entry)
     payment_method_entry.pack(ipady=10 , padx=2,fill='x',expand = True,side='left')
 
+
+    # Label d'erreur pour le nom
+    status_error_label = error_message(error_frame,"")
+    status_error_label.pack( padx=2,fill='x',expand = True,side='right')
+
+    # Label d'erreur pour le nom
+    payment_method_error_label = error_message(error_frame,"")
+    payment_method_error_label.pack( padx=2,fill='x',expand = True,side='left')
 
     # payment_method and reference_number
     create_label(add_sale_frame,"رقم الفاتورة").pack(ipady=10 , padx=20,fill='x',pady=5)
@@ -236,12 +253,13 @@ def create_add_sale_frame(root,user=None,sale=None):
     reference_number_entry = create_entry(add_sale_frame)
     reference_number_entry.insert(0, reference)
     reference_number_entry.pack(ipady=10 , fill='x',pady=5,padx=20,)
-    
+    ref_num_error = error_message(add_sale_frame, "")
+    ref_num_error.pack( fill='x',pady=5,padx=20,)
     # note
     create_label(add_sale_frame,"ملاحظات").pack(ipady=10 , padx=20,fill='x',pady=5)
     
     note_entry = create_entry(add_sale_frame)
-    note_entry.pack(ipady=10 , fill='x',pady=(5,0),padx=20,)
+    note_entry.pack(ipady=10 , fill='x',pady=5,padx=20,)
     
     
     # third frame labels
@@ -497,50 +515,76 @@ def create_add_sale_frame(root,user=None,sale=None):
     # update the
     update_table()
 
-    
+
+# Fonction de validation pour vérifier si l'entrée est une chaîne de caractères
+    def validate_string(input_str):
+        # Cette regex vérifie que l'entrée contient uniquement des lettres et des espaces
+        return bool(re.match(r'^[A-Za-z\s]+$', input_str))
 
     def add_sales():
         customer = customer_entry.get()[0]
         date = date_entry.get_date().strftime('%Y-%m-%d') if date_entry.get_date() else None
-        # total_amount = float(total_amount_entry.get())
-        # discount = float(discount_entry.get())
-        # final_amount = ((total_amount) + ( total_amount*discount*0.01))
         status = status_entry.get()
         payment_method = payment_method_entry.get()
         reference_number = reference_number_entry.get()
         note = note_entry.get()
         
+        # Réinitialiser les messages d'erreur
+        status_error_label.configure(text="")
+        payment_method_error_label.configure(text="")
+        ref_num_error.configure(text="")
         
-        # Validation des informations de connexion
-        if payment_method == "" or status == "" or note == ""  or  reference_number == '':
-            messagebox.showerror("Error", "Please fill all the fields")
-        else:
-            try:
-                connect_db()
-                query = '''INSERT INTO sales (date, customer_id,  status, payment_method, reference_number, notes,
-                created_by,created_at,completed_at)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,Now(),Now())'''
-                values = (date, customer,  status, payment_method, reference_number, note, 1)
-                my_cursor.execute(query,values)
-                connect.commit()
-                messagebox.showinfo('نجاح', 'تمت اضافة الفاتورة بنجاح')
-                                
-                result = messagebox.askyesno('تم الاضافة', 'هل تريد اضافة فاتورة جديد?' , parent=add_sale_frame)
-                if result == True:
-                    status_entry.delete(0,tk.END)
-                    payment_method_entry.delete(0,tk.END)
-                    global reference
-                    reference = reference_number
-                    reference_number_entry.delete(0,tk.END)
-                    note_entry.delete(0,tk.END)
-                    global state
-                    print('Reference number:', reference)
-                    state = 'disabled'
-                    update_state()
-                
-            except Exception as e:
-                messagebox.showerror('Error', str(e))
+        # Validation des champs
+        has_error = False
+        
+        # Validation du champ "status"
+        if not validate_string(status):
+            status_error_label.configure(text="ادخل حالة صحيح (حروف فقط)")
+            has_error = True
+        
+        # Validation du champ "payment_method"
+        if not validate_string(payment_method):
+            payment_method_error_label.configure(text="ادخل طريقة الدفع صحيحة (حروف فقط)")
+            has_error = True
+        
+        if reference_number == '':
+            ref_num_error.configure(text="ادخل رقم المرجع")
+            has_error = True
+        
+
+        # Si une erreur est détectée, arrêter la fonction
+        if has_error:
+            return
+        
+        
+        # Si aucune erreur, ajouter la facture
+        try:
+            connect_db()
+            query = '''INSERT INTO sales (date, customer_id, status, payment_method, reference_number, notes,
+            created_by, created_at, completed_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, Now(), Now())'''
+            values = (date, customer, status, payment_method, reference_number, note, 1)
+            my_cursor.execute(query, values)
+            connect.commit()
+            messagebox.showinfo('نجاح', 'تمت اضافة الفاتورة بنجاح')
             
+            result = messagebox.askyesno('تم الاضافة', 'هل تريد اضافة فاتورة جديد؟', parent=add_sale_frame)
+            if result:
+                status_entry.delete(0, tk.END)
+                payment_method_entry.delete(0, tk.END)
+                global reference
+                reference = reference_number
+                reference_number_entry.delete(0, tk.END)
+                note_entry.delete(0, tk.END)
+                global state
+                print('Reference number:', reference)
+                state = 'disabled'
+                update_state()
+        
+        except Exception as e:
+            messagebox.showerror('Error', str(e))
+        
+        
     add_button = ctk.CTkButton(
         add_sale_frame,
         text="إضافة",
@@ -549,8 +593,7 @@ def create_add_sale_frame(root,user=None,sale=None):
         corner_radius=4,
         command=add_sales
             )
-    add_button.pack(pady=15,ipady=10,padx=20,fill='x')
-    
+    add_button.pack(pady=10,ipady=10,padx=20,fill='x')
     
     
     return principal_frame
@@ -561,7 +604,6 @@ def create_add_sale_frame(root,user=None,sale=None):
 # window.state('zoomed')
 
 # add_sale_frame = create_add_sale_frame(window)
-# # add_sale_frame.pack(fill='both', expand=True)
 
 # # run
 # window.mainloop()

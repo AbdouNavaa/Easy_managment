@@ -176,11 +176,11 @@ def open_update_window(product, update_callback):
     list_of_suppliers = []
     fetch_drop('suppliers',suppliers, list_of_suppliers)
     
-    #supplier
     supplier_label = create_label(frame,"المورد ")
     supplier_label.grid(sticky="news",row = 6, column = 1, ipady=10 , pady=2, )
     
-    prod_supplier_default = prod[6]
+    prod_supplier_default = prod[6] if prod[6] != None else list_of_suppliers[0]
+    print('dfssdff:',product,prod)
 
     # Créez une variable Tkinter StringVar
     prod_supplier = tk.StringVar(value=prod_supplier_default)
@@ -191,7 +191,6 @@ def open_update_window(product, update_callback):
         font=font_arial,
         variable=prod_supplier
     )
-    # supplier_entry.insert(0, str(prod[6]))  # Pré-remplir avec la valeur actuelle
     supplier_entry.grid(row = 7, column = 1, ipady=10 , pady=2, padx=20, )
     
     
@@ -684,7 +683,6 @@ def search_by_category(query, refresh_callback, ):
         SELECT p.id,p.name,c.name,p.price,w.name,p.min_quantity,w.location
         FROM products p JOIN product_categories c ON p.category_id = c.id JOIN warehouses w ON p.warehouse_id = w.id 
         WHERE c.name = %s 
-        LIMIT 10
         '''
         my_cursor.execute(sql_query, (query,))
         # search_results = my_cursor.fetchall()  # Récupérer les résultats
@@ -766,21 +764,7 @@ def show_title_frame(parent, ):
     )
     title_label.pack(side="right")
     
-    # add 3 button 
-    # add_product_button = ctk.CTkButton(
-    #     master=title_frame,
-    #     text="اضافة منتج",
-    #     font=font_arial,
-    #     fg_color="#2498f5",
-    #     text_color="#333",
-    #     hover_color="#f0f0f0",
-    #     corner_radius=5,
-    #     command=add_product
-    # )
-    # # add_product_button.pack(pady=10,anchor="e",padx=(10,40),)
 
-    # add_product_button.grid(row=0, column=0, sticky="e", padx=5, pady=5)
-    # add 3 button 
     export_button = ctk.CTkButton(
         master=title_frame,
         text=" Excel تصدير إلى ",
@@ -809,13 +793,36 @@ def show_title_frame(parent, ):
     export_button.pack(side="left")
 
 
-def create_products_frame(root,user=None):
+# def create_products_frame(root,user=None):
+#     products_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
+
+#     show_title_frame(products_frame)
+
+#     show_products_table(products_frame,is_admin = user[4] if user else 0)
+#     return products_frame
+
+def create_products_frame(root):
     products_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
 
+    # Titre
     show_title_frame(products_frame)
-    print('User:',user[0]) if user else None
 
-    show_products_table(products_frame,is_admin = user[2] if user else 0)
+    # Frame pour le tableau des produits
+    table_frame = ctk.CTkFrame(products_frame, fg_color="#fff")
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    def set_user(user):
+        # Nettoyer la frame avant d'afficher un nouveau tableau
+        for widget in table_frame.winfo_children():
+            widget.destroy()
+
+        # Afficher le tableau des produits en fonction de l'utilisateur
+        is_admin = user[4] if user else 0
+        show_products_table(table_frame, is_admin=is_admin)
+
+    # Ajouter la méthode set_user à la frame
+    products_frame.set_user = set_user
+
     return products_frame
 
 # window = ctk.CTk(fg_color="#fff")

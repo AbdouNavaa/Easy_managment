@@ -61,6 +61,20 @@ def create_label(parent,text,wid=200):
     label_widgets.append(label)
     return label
 
+import re 
+def error_message(parent,text):
+    message = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12),height=10)
+    return message
+# Fonctions de validation
+def validate_string(input_str):
+    return bool(re.match(r'^[A-Za-z\s]+$', input_str))
+
+def validate_number(input_str):
+    # Vérifie que l'entrée contient uniquement des chiffres et a une longueur d'au moins 5
+    return bool(re.match(r'^[0-9]{8,}$', input_str))
+
+def validate_email(input_str):
+    return bool(re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', input_str))
 
 import bcrypt
 
@@ -82,24 +96,52 @@ def create_add_user_frame(root):
     ctk.CTkButton(btns_frame, text="Ar",width=40,fg_color='#f6f7f7',hover_color='#fff',text_color='black',command=lambda:direction('Ar')).pack(pady=1,padx=(155,5),side='right')
     # name 
     create_label(add_user_frame,"اسم المستخدم").pack(ipady=10 ,pady=5, padx=20,fill='x')
-    username_entry = create_entry(add_user_frame)
+    username_entry = create_entry(add_user_frame) 
+    
+    name_error = error_message(add_user_frame, "")
+    name_error.pack(ipady=10 , padx=20)
     
     # email
     create_label(add_user_frame,"البريد الالكتروني").pack(ipady=10 ,pady=5, padx=20,fill='x')
     email_entry = create_entry(add_user_frame)
+    email_error = error_message(add_user_frame, "")
+    email_error.pack(ipady=10 , padx=20)
     
     # password_hash
     create_label(add_user_frame,"كلمة المرور").pack(ipady=10 ,pady=5, padx=20,fill='x')
     password_entry = create_entry(add_user_frame)
-    
+    password_error = error_message(add_user_frame, "")
+    password_error.pack(ipady=10 , padx=20)
     def add_users():
         username = username_entry.get()
         email = email_entry.get()
         password = password_entry.get()
         
-        # Validation des informations de connexion
-        if username == "" or email == "" or password == "":
-            messagebox.showerror("Error", "Please fill all the fields")
+        # Réinitialiser les messages d'erreur
+        name_error.configure(text="")
+        password_error.configure(text="")
+        email_error.configure(text="")
+        
+        
+        # Validation des champs
+        has_error = False
+
+        if not validate_string(username):
+            name_error.configure(text="ادخل اسم صحيح (حروف فقط)")
+            has_error = True
+
+        if not validate_email(email):
+            email_error.configure(text="ادخل بريد الكتروني صحيح")
+            has_error = True
+            
+        if password == '' or len(password) < 4:
+            password_error.configure(text="ادخل كلمة مرور صحيحة ( 4 حروف او ارقام على الأقل)")
+            has_error = True
+
+
+        if has_error:
+            return
+        
         else:
             try:
                 connect_db()
@@ -111,8 +153,7 @@ def create_add_user_frame(root):
                 VALUES (%s, %s, %s, NOW(),NOW())'''
                 my_cursor.execute(query, (username, email, hashed_password))
                 connect.commit()
-                messagebox.showinfo('نجاح', 'تم اضافة المستخدم بنجاح')
-                refresh_callback()
+                messagebox.showinfo('نجاح', 'تم اضافة  المستخدم بنجاح')
                 
                 result = messagebox.askyesno('تم الاضافة', 'هل تريد اضافة مستخدم جديد?' , parent=add_user_frame)
                 if result == True:

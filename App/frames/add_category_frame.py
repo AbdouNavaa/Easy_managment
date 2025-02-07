@@ -59,6 +59,9 @@ def create_label(parent,text):
     label_widgets.append(label)
     return label
 
+def error_message(parent,text):
+    message = ctk.CTkLabel(parent, text="", text_color="red", font=("Arial", 12),height=10)
+    return message
 
 # import 
 def create_add_category_frame(root):
@@ -79,21 +82,39 @@ def create_add_category_frame(root):
     # name 
     create_label(add_category_frame,"اسم الفئة").pack(ipady=10 ,pady=5, padx=20,fill='x')
     name_entry = create_entry(add_category_frame)
+    
+    # error message
+    name_error = error_message(add_category_frame, "")
+    name_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
 
     # desc 
     create_label(add_category_frame,"وصف الفئة").pack(ipady=10 ,pady=5, padx=20,fill='x')
     desc_entry = ctk.CTkTextbox(add_category_frame, font=("Arial", 14), 
         fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=2,width=400,)
     desc_entry.pack(ipady=10 , padx=20,)
-    
+    desc_error = error_message(add_category_frame, "")
+    desc_error.pack(ipady=10 ,pady=5, padx=20,fill='x')
     
     def add_categories():
         name = name_entry.get()
         description = desc_entry.get(index1='0.0', index2='end')
         
+        name_error.configure(text="")
+        desc_error.configure(text="")
+        has_error = False
+
+        
         # Validation des informations de connexion
-        if name == "" or description == "" :
-            messagebox.showerror("Error", "Please fill all the fields")
+        if name == "":
+            name_error.configure(text="ادخل اسم الفئة")
+            has_error = True
+
+        if description == "":
+            desc_error.configure(text="ادخل وصف الفئة")
+            has_error = True
+
+        if has_error:
+            return
         else:
             try:
                 

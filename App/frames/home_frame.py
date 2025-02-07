@@ -52,7 +52,6 @@ def fetch_sales_data():
         # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     dates = [row[0].strftime('%Y-%m-%d') for row in result]
     amounts = [row[1] for row in result]
-    print('amounts:',amounts,'date:',dates,'result:',result)
     return dates, amounts
 
 def fetch_warehouse_data():
@@ -131,7 +130,6 @@ def refresh_data():
     daily_sale = fetch_daily_sales()
     prods = fetch_total(my_cursor, 'products')
     warehouses = fetch_total(my_cursor, 'warehouses')
-    print('warehouses:',warehouses)
     # Récupérer les données pour les graphiques
     sales_dates, sales_amounts = fetch_sales_data()
     warehouse_names, product_counts = fetch_warehouse_data()
@@ -148,7 +146,6 @@ def refresh_data1(cards_cont1, cards_cont2):
     new_daily_sale = fetch_daily_sales()
     new_prods = fetch_total(my_cursor, 'products')
     new_warehouses = fetch_total(my_cursor, 'warehouses')
-    print('warehouses2:',warehouses)
     # Récupérer les données pour les graphiques
     sales_dates, sales_amounts = fetch_sales_data()
     warehouse_names, product_counts = fetch_warehouse_data()   
@@ -222,8 +219,6 @@ def create_home_frame(root):
         card.pack(side="left", padx=10, fill="both", ipady=20, expand=True)
 
     # Ajout des graphiques
-    # print("\n================================",sales_dates,sales_amounts)
-    # print("\n================================",warehouse_names,product_counts)
     sales_graph = create_graph_frame(cards_container1, "المبيعات", sales_dates, sales_amounts, colors=['#2972d6'],labels=sales_dates, graph_type='line')
     sales_graph.pack(side="left", padx=10, fill="both", expand=True)
 
