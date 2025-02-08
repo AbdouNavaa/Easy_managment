@@ -26,6 +26,7 @@ from tkinter import messagebox
 import pymysql
 import bcrypt
 import os
+from PIL import Image, ImageTk
 
 def connect_db():
     try:
@@ -71,10 +72,14 @@ def create_label(parent,text,wid=200):
 logged = False
 user_logged = None
 class App(ctk.CTk):
-    def __init__(self, user=None):
+    def __init__(self, user=None,accept=False):
         super().__init__()
         self.title("Product Management")
         self.geometry("1000x700")
+        
+        
+        # methode to change
+
 
         # Create a container for the navbar
         self.navbar = ctk.CTkFrame(self, fg_color="#333", corner_radius=0)
@@ -94,7 +99,15 @@ class App(ctk.CTk):
         self.init_frames()
         self.user_data = user if user else {}
         print("User Data: ", self.user_data)
-        self.show_frame("Verify")
+        self.show_frame("Login") if accept else self.show_frame("Verify") 
+        
+    def update_theme(self):
+        # change the theme
+        theme = ctk.get_appearance_mode() 
+        if theme == 'Dark':
+            ctk.set_appearance_mode("light")
+        else:
+            ctk.set_appearance_mode("dark") 
         
     def init_frames(self):
         """Initialize and store all frames/pages."""
@@ -162,6 +175,17 @@ class App(ctk.CTk):
 
         button_style = {"font": ("Arial", 16), "fg_color": "#333", "text_color": "white", "hover_color": "#333"}
         
+        
+        theme = ctk.get_appearance_mode() 
+        if theme == 'light':
+            image_path = os.path.join(os.path.dirname(__file__), "frames/images", "sun.png") 
+            image = ctk.CTkImage(light_image=Image.open(image_path), size=(30, 30),)
+        else:
+            image_path = os.path.join(os.path.dirname(__file__), "frames/images", "moon.png")
+            image = ctk.CTkImage(light_image=Image.open(image_path), size=(30, 30),)
+
+        theme_button = ctk.CTkButton(self.navbar,text='',fg_color='transparent',hover=False, command=self.update_theme,width=10,height=10,corner_radius=50)
+        theme_button.pack(pady=10, side="right", fill="x")
         # logo button
         logo_btn = ctk.CTkButton(self.navbar, text="Easy", **button_style, width=140, anchor='w')
         logo_btn.pack(side="right", padx=1, pady=5)
@@ -222,12 +246,11 @@ class App(ctk.CTk):
             user_dropdown.pack(side="right", padx=1, pady=5)
 
             # settings
-            settings_btn = ctk.CTkButton(self.navbar, text="الاعدادات", **button_style, width=60)
-            settings_btn.pack(side="right", padx=1, pady=5)
+            settings_dropdown = self.create_dropdown(self.navbar, 'الاعدادات', [
+                ("النسخ الاحتياطي", lambda: export_to_sql())
+            ])
+            settings_dropdown.pack(side="right", padx=1, pady=5)
 
-            # Backup button
-            self.home_btn = ctk.CTkButton(self.navbar, text="النسخ الاحتياطي", command=lambda: export_to_sql(), **button_style, width=60)
-            self.home_btn.pack(side="right", padx=1, pady=5)
 
             # Logout button
             logout_btn = ctk.CTkButton(self.navbar, text="تسجيل الخروج", command=lambda: self.logout(), **button_style, width=90)
@@ -402,24 +425,43 @@ def create_login_frame(root,app):
 
     return login_frame
 
-
-
-# Chemin du fichier contenant les codes de licence
-LICENSE_FILE = "licenses.txt"
-
-def load_license_codes():
-    """Charge les codes de licence depuis le fichier."""
-    try:
-        with open(LICENSE_FILE, "r") as file:
-            return [line.strip() for line in file.readlines()]
-    except FileNotFoundError:
-        messagebox.showerror("Erreur", "Fichier de licence introuvable.")
-        return []
-
+    
+import hashlib
+import uuid
 def verify_license(entered_code):
-    """Vérifie si le code entré est valide."""
-    license_codes = load_license_codes()
-    return entered_code in license_codes
+    """Vérifie si la licence est valide."""
+    try:
+        # Récupérer l'adresse MAC de la machine
+        mac_address = '-'.join(('%012X' % uuid.getnode())[i:i+2] for i in range(0, 12, 2))
+        print("mac_address", mac_address)
+        
+        # Connexion à la base de données
+        connect = pymysql.connect(host='localhost', user='root', password='Azerty2024', database='easy_db')
+        cursor = connect.cursor()
+        
+        # Récupérer la clé de licence correspondante
+            # my_cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+        cursor.execute("SELECT * FROM licenses WHERE mac_address = %s and license_key = %s", (mac_address,entered_code))
+        result = cursor.fetchone()
+        
+        if result:
+            print("Ok")
+            # Ajouter l'adresse MAC à la table mac
+            cursor.execute("INSERT INTO mac (mac_address) VALUES (%s)", (mac_address,))
+            # connect.commit()
+            # delete l'adresse mac sur table licenses
+            cursor.execute("DELETE FROM licenses WHERE mac_address = %s and license_key = %s", (mac_address, entered_code))
+            
+            connect.commit()
+            return True
+        else:
+            messagebox.showerror("Licence non trouvée", "Aucune licence trouvée pour cette machine.")
+            return False
+    except Exception as e:
+        messagebox.showerror("Erreur", f"Erreur lors de la vérification de la licence : {str(e)}")
+        return False
+    finally:
+        connect.close()
 
 def create_verify_frame(parent, app):
     """Crée la frame d'accueil avec la vérification de licence."""
@@ -446,13 +488,30 @@ def create_verify_frame(parent, app):
         else:
             messagebox.showerror("Erreur", "Code de licence invalide.")
 
-    verify_button = ctk.CTkButton(verify_frame, text="Vérifier la licence",fg_color='#222',
+    verify_button = ctk.CTkButton(verify_frame, text="Vérifier la licence",fg_color='#222',hover=False,
         width=300,font=("Arial", 16,'bold'), command=on_verify_license,corner_radius=2)
     verify_button.pack(pady=20,padx=30,ipady=10)
 
     return verify_frame
 
 
-app = App()
-# login_frame = create_login_frame(app.container, app)
-app.mainloop()
+
+if __name__ == "__main__":
+    # Récupérer l'adresse MAC de la machine
+    mac_address = '-'.join(('%012X' % uuid.getnode())[i:i+2] for i in range(0, 12, 2))
+    print("mac_address", mac_address)
+    connect = pymysql.connect(host='localhost', user='root', password='Azerty2024', database='easy_db')
+    cursor = connect.cursor()
+    
+    # Récupérer la clé de licence correspondante
+        # my_cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+    cursor.execute("SELECT * FROM mac WHERE mac_address = %s", (mac_address))
+    result = cursor.fetchone()
+    
+    if result:
+    # if verify_license():
+        app = App(accept= True)
+        app.mainloop()
+    else:
+        app = App(accept= False)
+        app.mainloop()
