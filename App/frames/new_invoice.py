@@ -593,7 +593,7 @@ def create_add_sale_frame(root,user=None,sale=None):
         corner_radius=4,
         command=add_sales
             )
-    add_button.pack(pady=10,ipady=10,padx=20,fill='x')
+    add_button.pack(pady=2,ipady=10,padx=20,fill='x')
     
     
     return principal_frame

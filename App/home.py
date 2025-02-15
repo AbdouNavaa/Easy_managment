@@ -20,6 +20,7 @@ from frames.add_customer_frame import create_add_customer_frame
 from frames.users_frame import create_users_frame
 from frames.add_user_frame import create_add_user_frame
 from frames.invoices_frame import  create_sales_frame
+from frames.purchases import  create_purchases_frame
 from frames.new_invoice import create_add_sale_frame
 # from frames.login_frame import create_login_frame
 from tkinter import messagebox
@@ -121,6 +122,7 @@ class App(ctk.CTk):
         self.frames["Customers"] = create_customers_frame(self.container)
         self.frames["Users"] = create_users_frame(self.container)
         self.frames["Sales"] = create_sales_frame(self.container)
+        self.frames["Purchases"] = create_purchases_frame(self.container)
         
         self.frames["AddProduct"] = create_add_product_frame(self.container)
         self.frames["AddProductCategory"] = create_add_category_frame(self.container)
@@ -218,8 +220,9 @@ class App(ctk.CTk):
             inventory_dropdown.pack(side="right", padx=1, pady=5)
 
             # Sales dropdown
-            sale_dropdown = self.create_dropdown(self.navbar, 'المبيعات', [
-                ("عرض الفواتير", lambda: self.show_frame("Sales", user=user)),
+            sale_dropdown = self.create_dropdown(self.navbar, 'المعاملات', [
+                (" المبيعات ", lambda: self.show_frame("Sales", user=user)),
+                (" المشتريات", lambda: self.show_frame("Purchases", user=user)),
                 ("إضافة فاتورة", lambda: self.show_frame("AddSale"))
             ])
             sale_dropdown.pack(side="right", padx=1, pady=5)

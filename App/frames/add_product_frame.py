@@ -70,7 +70,7 @@ def create_label(parent,text):
 def create_add_product_frame(root):
     
     add_product_frame = ctk.CTkFrame(root, fg_color='#fff', border_width=1, border_color='#ddd')
-    add_product_frame.pack(padx=400,pady=10,ipady=10,)
+    add_product_frame.pack(padx=400,pady=1,ipady=10,)
     
     font_arial_title =("Arial", 16,'bold')
     font_arial =("Arial", 14)
@@ -146,7 +146,7 @@ def create_add_product_frame(root):
     category_entry = ctk.CTkOptionMenu(
         dropdowns_entry,values=list_of_categories,anchor='center',
         text_color="#333",dropdown_fg_color="#fff",
-        font=font_arial,
+        font=font_arial,dropdown_font=font_arial,
         button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
 
     )
@@ -184,7 +184,6 @@ def create_add_product_frame(root):
         font=font_arial,
     )
     warehouse_entry.grid(sticky="news",row = 0, column = 0, ipady=10 , pady=2, padx=(15,0),)
-
     
     # second frame  labels
     second_frame = ctk.CTkFrame(add_product_frame,fg_color='transparent',width=400)
@@ -224,58 +223,70 @@ def create_add_product_frame(root):
     min_qty_entry = create_entry(second_frame_entry)
     min_qty_entry.grid(sticky="news",row = 0, column = 0,ipady=10 , pady=2, padx=(5,0),  )
     
-
+    # pour table purchases
+    # third frame  labels
+    third_frame = ctk.CTkFrame(add_product_frame,fg_color='transparent',width=400)
+    third_frame.pack(ipady=10 , padx=20,pady=0,fill='x')
+    third_frame.columnconfigure((0,1), weight=1, uniform='equal') 
+    
+    
+    # calendar
+    created_at_label = create_label(third_frame,"تاريخ الاضافة ").grid(sticky="news",row = 0, column = 1, ipady=10 , pady=2, )
+    
+    date_entry = DateEntry(third_frame,width=30, background='white',font=font_arial,
+                                foreground='black', justify='center', date_pattern='yyyy-mm-dd',)
+    date_entry.grid(sticky="news",row = 0, column = 0, ipady=10 , pady=2, padx=(5,0))
+    
     def add_products():
         name = name_entry.get()
         description = desc_entry.get()
         price = float(price_entry.get())
-        purchase_price = float(sell_price_entry.get())
-        selling_price = float(buy_price_entry.get())
-        category = category_entry.get()[0]
-        supplier = supplier_entry.get()[0]
-        warehouse = warehouse_entry.get()[0]
+        purchase_price = float(buy_price_entry.get())
+        selling_price = float(sell_price_entry.get())
+        category = category_entry.get().split('-')[0]
+        supplier = supplier_entry.get().split('-')[0]
+        warehouse = warehouse_entry.get().split('-')[0]
         code = code_entry.get()
         unit = unit_entry.get()
         min_qty = float(min_qty_entry.get())
-        # active = int(active_entry.get())
-        # created_at = created_at_entry.get_date().strftime('%Y-%m-%d') if created_at_entry.get_date() else None
-        quantity = qty_entry.get()
-        
-        # Validation des informations de connexion
-        if name == "" or description == "" or price == "" or purchase_price == "" or  quantity == '' or min_qty == '':
+        quantity = float(qty_entry.get())
+        reference = generate_reference()
+        date = date_entry.get_date()
+    
+        if name == "" or description == "" or price == "" or purchase_price == "" or quantity == '' or min_qty == '':
             messagebox.showerror("Error", "Please fill all the fields")
         else:
-            try:
-                
-                connect_db()
-                query = '''insert into products (id,name,description,price,purchase_price,category_id,supplier_id,warehouse_id,code,selling_price,
-                quantity,min_quantity,is_active,created_at) values(null,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,0,NOW())'''
-                my_cursor.execute(query,(name,description,price,purchase_price,category,supplier,warehouse,code,selling_price,quantity,min_qty))
-                connect.commit()
-                messagebox.showinfo('نجاح', 'تم اضافة المنتج بنجاح')
-                
-                result = messagebox.askyesno('تم الاضافة', 'هل تريد اضافة منتج جديد?' , parent=add_product_frame)
-                if result == True:
-                    name_entry.delete(0,tk.END)
-                    desc_entry.delete(0,tk.END)
-                    price_entry.delete(0,tk.END)
-                    sell_price_entry.delete(0,tk.END)
-                    # category_entry.set(0)
-                    # category_entry.delete(0,tk.END) 
-                    # supplier_entry.delete(0,tk.END)
-                    # warehouse_entry.delete(0,tk.END)
-                    code_entry.delete(0,tk.END)
-                    unit_entry.delete(0,tk.END)
-                    buy_price_entry.delete(0,tk.END)
-                    qty_entry.delete(0,tk.END)
-                    min_qty_entry.delete(0,tk.END)
-                    # root.destroy()
-                    # import products_frame
-            except Exception as e:
-                messagebox.showerror('Error', str(e))
+            connect_db()
             
-        
+            # Check if a purchase exists for this supplier today
+            my_cursor.execute("SELECT id FROM purchases WHERE supplier_id = %s AND DATE(created_at) = CURDATE()", (supplier,))
+            existing_purchase = my_cursor.fetchone()
+            
+            if existing_purchase:
+                # Update existing purchase
+                pur_id = existing_purchase[0]
+                query = '''UPDATE purchases SET date = %s, payment_method = 'cash', reference_number = %s WHERE id = %s'''
+                my_cursor.execute(query, (date, reference, pur_id))
+            else:
+                # Create new purchase
+                my_cursor.execute("INSERT INTO purchases (date, supplier_id, payment_method, reference_number, created_at) VALUES (%s, %s, 'cash', %s, NOW())", (date, supplier, reference))
+                pur_id = my_cursor.lastrowid
+                # print("New purchase created with ID:", pur_id)
+                
 
+            # Insert new product
+            query = '''INSERT INTO products (name, description, price, purchase_price, category_id, supplier_id, warehouse_id, code, selling_price,
+            quantity, min_quantity, is_active, created_at, purchase_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 1, NOW(), %s)'''
+            my_cursor.execute(query, (name, description, price, purchase_price, category, supplier, warehouse, code, selling_price, quantity, min_qty, pur_id))
+
+            connect.commit()
+            messagebox.showinfo('نجاح', 'تم اضافة المنتج بنجاح')
+            
+            result = messagebox.askyesno('تم الاضافة', 'هل تريد اضافة منتج جديد?', parent=add_product_frame)
+            if result:
+                for entry in [name_entry, desc_entry, price_entry, sell_price_entry, code_entry, unit_entry, buy_price_entry, qty_entry, min_qty_entry]:
+                    entry.delete(0, tk.END)
+            
     add_button = ctk.CTkButton(
         add_product_frame,
         text="تاكيد",
@@ -284,10 +295,18 @@ def create_add_product_frame(root):
             )
     add_button.pack(ipady=10 , padx=20,fill='x')
     
-    
-    
     return add_product_frame
 
+import random
+import uuid
+
+def generate_reference():
+    reference = str(uuid.uuid4()).upper()[0:4] + str(random.randint(1000, 9999))
+    return reference
+
+# Utilisation de la fonction pour générer un numéro de référence
+reference = generate_reference()
+print(reference)
 # # window 
 # window = ctk.CTk(fg_color="#fff")
 # window.title('customtkinter app')

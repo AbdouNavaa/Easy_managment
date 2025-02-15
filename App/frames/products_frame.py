@@ -90,6 +90,81 @@ def create_label(parent,text):
     label_widgets.append(label)
     return label
 
+def product_details(id):
+    connect_db()
+    sql_query = '''
+    SELECT p.id,p.name,c.name,p.price,w.name,p.min_quantity,w.location,p.quantity,p.description,s.name,p.code
+    FROM products p JOIN product_categories c ON p.category_id = c.id JOIN warehouses w ON p.warehouse_id = w.id JOIN suppliers s ON p.supplier_id = s.id 
+    WHERE p.id = %s
+    '''
+    # query = f'SELECT p.id,p.name,c.name,p.price,w.name,p.min_quantity,w.location FROM products p JOIN product_categories c ON p.category_id = c.id JOIN warehouses w ON p.warehouse_id = w.id LIMIT {limit} OFFSET {offset}'
+    
+    my_cursor.execute(sql_query, (id))
+    result = my_cursor.fetchone() 
+    
+    return result
+# details window
+
+def show_details(product):
+    show_window = ctk.CTkToplevel()
+    show_window.title("تفاصيل المنتج")
+    show_window.geometry("500x500")
+    show_window.configure(fg_color="#f0f0f0")
+
+    # Fetch product details
+    details = product_details(product[0])
+
+    # Main frame
+    main_frame = ctk.CTkFrame(show_window, corner_radius=10, fg_color="#ffffff")
+    main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+    # Product name
+    name_label = ctk.CTkLabel(main_frame, text=details[1], font=("Arial", 24, "bold"), text_color="#333333")
+    name_label.pack(pady=(20, 10))
+
+    # Details frame
+    details_frame = ctk.CTkFrame(main_frame, corner_radius=5, fg_color="white")
+    details_frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+    # Details
+    details_list = [
+        (":القسم", details[2]),
+        (":السعر", f"{details[3]} MRU"),
+        (":المخزن", details[4]),
+        (":الحد الأدنى للكمية", details[5]),
+        (":الموقع", details[6]),
+        (":الكمية الحالية", details[7]),
+        (":المورد", details[9]),
+        (":الكود", details[10]),
+        # ("الوصف", details[8]),
+    ]
+
+    for i, (label, value) in enumerate(details_list):
+        row_frame = ctk.CTkFrame(details_frame, fg_color="white")
+        row_frame.pack(fill="both", padx=10,pady=10)
+
+        label_widget = ctk.CTkLabel(row_frame, text=label, font=("Arial", 14, "bold"), text_color="#555555")
+        label_widget.pack(side="right")
+
+        value_widget = ctk.CTkLabel(row_frame, text=str(value), font=("Arial", 14), text_color="#333333")
+        value_widget.pack(side="left",padx=10)
+        
+        # line
+        line = ctk.CTkFrame(row_frame, height=1, fg_color="#999")
+        line.pack(fill="x", padx=10, pady=10, expand=True,)
+
+
+    # Center the window on the screen
+    # show_window.update_idletasks()
+    # width = show_window.winfo_width()
+    # height = show_window.winfo_height()
+    # x = (show_window.winfo_screenwidth() // 2) - (width // 2)
+    # y = (show_window.winfo_screenheight() // 2) - (height // 2)
+    # show_window.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+
+    show_window.grab_set()  # Make the window modal
+    show_window.focus_set()  # Set focus to the new window
+    
 # Fonction pour afficher la fenêtre de mise à jour
 def open_update_window(product, update_callback):
     update_window = tk.Toplevel(background='#fff')
@@ -441,6 +516,18 @@ def show_products_table(parent, limit=10,is_admin=1):
             # Ajouter les boutons Modifier et Supprimer
             buttons_frame = ctk.CTkFrame(data_frame, width=100, height=40, fg_color="#fff") 
             buttons_frame.grid(row=row_index, column=0, sticky="nsew", padx=5, pady=5) if is_admin == 1 else buttons_frame.grid_remove()
+            show_image_path = os.path.join(os.path.dirname(__file__), "images", "info.png")
+            show_image = ctk.CTkImage(light_image=Image.open(show_image_path), size=(15, 15),)
+            update_button = ctk.CTkButton(buttons_frame, text="",text_color="black",
+                    image=show_image,
+                    fg_color='#fff',border_color='#f0f0f0',border_width=1,corner_radius=2,
+                    hover_color='#f0f0f0',
+                    width=40,
+                    font=font_arial_btn,        
+                    command=lambda row=row: show_details(row[::-1])
+                    )
+            update_button.grid(row=0,column=2) 
+            
             edit_image_path = os.path.join(os.path.dirname(__file__), "images", "edit.png")
             edit_image = ctk.CTkImage(light_image=Image.open(edit_image_path), size=(15, 15),)
             update_button = ctk.CTkButton(buttons_frame, text="",text_color="black",
@@ -451,7 +538,7 @@ def show_products_table(parent, limit=10,is_admin=1):
                     font=font_arial_btn,        
                     command=lambda row=row: open_update_window(row[::-1],update_table)
                     )
-            update_button.grid(row=0,column=1) if is_admin == 1 else update_button.grid_remove()
+            update_button.grid(row=0,column=1,padx=5) if is_admin == 1 else update_button.grid_remove()
             
             
             delete_image_path = os.path.join(os.path.dirname(__file__), "images", "trash-can.png")
@@ -652,6 +739,8 @@ def refresh(refresh_callback):
     search_results = []
     # Appeler la fonction de rafraîchissement pour afficher les données à partir de la base de données
     refresh_callback()
+    
+
 def search(query,refresh_callback):
     global search_results  # Déclarer `search_results` comme global
     if not query:
@@ -798,7 +887,7 @@ def show_title_frame(parent, ):
 
 #     show_title_frame(products_frame)
 
-#     show_products_table(products_frame,is_admin = user[4] if user else 0)
+#     show_products_table(products_frame,is_admin = user[4] if user else 1)
 #     return products_frame
 
 def create_products_frame(root):
