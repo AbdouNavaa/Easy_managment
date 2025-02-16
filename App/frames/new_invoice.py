@@ -223,14 +223,26 @@ def create_add_sale_frame(root,user=None,sale=None):
 
     # status
     create_label(second_frame," الحالة").pack(ipady=10 , fill='x',expand = True,side='right')    
-    status_entry = create_entry(second_frame_entry)
+    status_list = ['في الطريق','مكتمل']
+    status_entry = ctk.CTkOptionMenu(
+        second_frame_entry,values=status_list,anchor='center',
+        text_color="#333",dropdown_fg_color="#fff",
+        font=font_arial_title,dropdown_font=font_arial_title,
+        button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
+    )
     status_entry.pack(ipady=10 , padx=2,fill='x',expand = True,side='right')
     
     
     # pay method
     create_label(second_frame,"طريقة الدفع").pack(ipady=10 , fill='x',expand = True,side='left')
     
-    payment_method_entry = create_entry(second_frame_entry)
+    methods = ['نقدي','بطاقة الدفع']
+    payment_method_entry = ctk.CTkOptionMenu(
+        second_frame_entry,values=methods,anchor='center',
+        text_color="#333",dropdown_fg_color="#fff",
+        font=font_arial_title,dropdown_font=font_arial_title,
+        button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
+    )
     payment_method_entry.pack(ipady=10 , padx=2,fill='x',expand = True,side='left')
 
 
@@ -310,7 +322,7 @@ def create_add_sale_frame(root,user=None,sale=None):
             # Extraire les informations nécessaires du produit
             product_code = result[1]  # Supposons que le code produit est à l'index 1
             quantity = float(quantity_entry.get())
-            price = float(result[11])  # Supposons que le prix est à l'index 4
+            price = float(result[12])  # Supposons que le prix est à l'index 4
             total = quantity * price
             # total_amount += total  
 
@@ -529,23 +541,11 @@ def create_add_sale_frame(root,user=None,sale=None):
         reference_number = reference_number_entry.get()
         note = note_entry.get()
         
-        # Réinitialiser les messages d'erreur
-        status_error_label.configure(text="")
-        payment_method_error_label.configure(text="")
         ref_num_error.configure(text="")
         
         # Validation des champs
         has_error = False
         
-        # Validation du champ "status"
-        if not validate_string(status):
-            status_error_label.configure(text="ادخل حالة صحيح (حروف فقط)")
-            has_error = True
-        
-        # Validation du champ "payment_method"
-        if not validate_string(payment_method):
-            payment_method_error_label.configure(text="ادخل طريقة الدفع صحيحة (حروف فقط)")
-            has_error = True
         
         if reference_number == '':
             ref_num_error.configure(text="ادخل رقم المرجع")
@@ -570,8 +570,7 @@ def create_add_sale_frame(root,user=None,sale=None):
             
             result = messagebox.askyesno('تم الاضافة', 'هل تريد اضافة فاتورة جديد؟', parent=add_sale_frame)
             if result:
-                status_entry.delete(0, tk.END)
-                payment_method_entry.delete(0, tk.END)
+                # status_entry.set('')
                 global reference
                 reference = reference_number
                 reference_number_entry.delete(0, tk.END)

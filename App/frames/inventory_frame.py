@@ -44,6 +44,8 @@ def direction_btn(parent,text):
 # fenetere pour ajouter une categorie
 def open_add_window(refresh_callback):
     add_window = tk.Toplevel(background='#fff')
+    add_window.grab_set()  # Make the window modal
+    add_window.focus_set()
     # add_window.pack()
     font_arial_title =("Arial", 16,'bold')
     font_arial =("Arial", 14)
@@ -139,7 +141,8 @@ from datetime import datetime
 def open_update_window(warehouse, update_callback):
     
     update_window = tk.Toplevel(background='#fff')
-    # update_window.pack()
+    update_window.grab_set()  # Make the window modal
+    update_window.focus_set()
     update_window.title("تعديل")
 
     warehouse=fetch_warehouse(warehouse[0])

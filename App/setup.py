@@ -1,9 +1,11 @@
 from cx_Freeze import setup, Executable
+import os
+
+# Chemin vers le dossier des images
+image_dir = os.path.join(os.path.dirname(__file__), "images")
 
 # Liste des packages à inclure
 packages = ["pymysql", "pandas", "tkcalendar", "bcrypt", "customtkinter", "PIL", "openpyxl", "sqlalchemy", "matplotlib"]
-
-
 
 # Configuration de l'exécutable
 executables = [
@@ -16,16 +18,16 @@ executables = [
 
 setup(
     name="Easy",
-    version="1.2.0",
+    version="1.3.1",
     description="Easy for management",
     options={
         "build_exe": {
             "packages": packages,
-            "excludes": ["xlrd", "xlsxwriter"],  # Exclure les modules inutiles
+            "include_files": [("images", "images")],  # Assurez-vous que les fichiers sont bien copiés
+            "excludes": ["xlrd", "xlsxwriter"],
         }
     },
     executables=executables,
 )
-
 # pour build
 # python setup.py build

@@ -221,7 +221,7 @@ def open_update_window(product, update_callback):
     selling_price_label.grid(sticky="news",row = 4, column = 0, ipady=10 , pady=2, )
     
     selling_price_entry = create_entry(frame)
-    selling_price_entry.insert(0, str(prod[11]))  # Pré-remplir avec la valeur actuelle
+    selling_price_entry.insert(0, str(prod[12]))  # Pré-remplir avec la valeur actuelle
     selling_price_entry.grid(row = 5, column = 0, ipady=10 , pady=2, padx=20, ) 
 
     # category
@@ -315,15 +315,14 @@ def open_update_window(product, update_callback):
     code_label.grid(sticky="news",row = 8, column = 0, ipady=10 , pady=2, )
     
     code_entry = create_entry(frame)
-    code_entry.insert(0, str(prod[9]))  # Pré-remplir avec la valeur actuelle
+    code_entry.insert(0, str(prod[10]))  # Pré-remplir avec la valeur actuelle
     code_entry.grid(row = 9, column = 0, ipady=10 , pady=2, padx=20, )
     
     # unit
     unit_label = create_label(frame,"الوحدة ")
     unit_label.grid(sticky="news",row = 8, column = 1, ipady=10 , pady=2, )
     
-    unit_entry = create_entry(frame)
-    unit_entry.insert(0, str(prod[10]))  # Pré-remplir avec la valeur actuelle
+    unit_entry = create_entry(frame) # Pré-remplir avec la valeur actuelle
     unit_entry.grid(row = 9, column = 1, ipady=10 , pady=2, padx=20, )
     
     # qty
@@ -331,7 +330,7 @@ def open_update_window(product, update_callback):
     qty_label.grid(sticky="news",row = 10, column = 2, ipady=10 , pady=2, )
     
     qty_entry = create_entry(frame)
-    qty_entry.insert(0, str(prod[12]))  # Pré-remplir avec la valeur actuelle
+    qty_entry.insert(0, str(prod[13]))  # Pré-remplir avec la valeur actuelle
     qty_entry.grid(row = 11, column = 2, ipady=10 , pady=2, padx=20, )
     
     # min quantity
@@ -339,7 +338,7 @@ def open_update_window(product, update_callback):
     min_qty_label.grid(sticky="news",row = 10, column = 1, ipady=10 , pady=2, )
     
     min_qty_entry = create_entry(frame)
-    min_qty_entry.insert(0, str(prod[13]))  
+    min_qty_entry.insert(0, str(prod[14]))  
     min_qty_entry.grid(row = 11, column = 1, ipady=10 , pady=2, padx=20, )
     
     # status
@@ -347,7 +346,7 @@ def open_update_window(product, update_callback):
     active_label.grid(sticky="news",row = 10, column = 0, ipady=10 , pady=2, )
     
     active_entry = create_entry(frame)    
-    active_entry.insert(0, str(prod[14]))  # Pré-remplir avec la valeur actuelle
+    active_entry.insert(0, str(prod[15]))  # Pré-remplir avec la valeur actuelle
     # active_entry.grid(row = 11, column = 0, ipady=10 , pady=2, padx=20, )
     active_entry.grid(row = 11, column = 0, ipady=10 , pady=2, padx=20, )
 
@@ -391,11 +390,14 @@ def open_update_window(product, update_callback):
         update_window.destroy()  # Fermer la fenêtre de mise à jour
         update_callback()
 
-    ctk.CTkButton(frame, text="حفظ", command=save_changes,).grid(row=12, column=0, columnspan=3, ipady=10, pady=(20,10), padx=20, sticky="news")
+    ctk.CTkButton(frame, text="حفظ", command=save_changes,font=font_arial_title,corner_radius=2).grid(row=12, column=0, columnspan=3, ipady=10, pady=(20,10), padx=20, sticky="news")
         # Mettre à jour la taille du frame pour qu'il soit visible dans le canvas
     frame.update_idletasks( )
     canvas.configure(scrollregion=canvas.bbox("all"))
-
+    
+    
+    update_window.grab_set()  # Make the window modal
+    update_window.focus_set()
 
 # Connection settings
 def connect_db():

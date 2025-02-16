@@ -1,49 +1,43 @@
-import tkinter as tk
-import customtkinter as ctk
-from tkinter import messagebox
+# import tkinter as tk
+# from tkinter import messagebox
 
-# Chemin du fichier contenant les codes de licence
-LICENSE_FILE = "licenses.txt"
+# def on_button_click():
+#     label.config(text="تم النقر على الزر!")
 
-def load_license_codes():
-    """Charge les codes de licence depuis le fichier."""
-    try:
-        with open(LICENSE_FILE, "r") as file:
-            return [line.strip() for line in file.readlines()]
-    except FileNotFoundError:
-        messagebox.showerror("Erreur", "Fichier de licence introuvable.")
-        return []
+# def on_key_press(event):
+#     label.config(text=f"تم الضغط على المفتاح: {event.char}")
 
-def verify_license(entered_code):
-    """Vérifie si le code entré est valide."""
-    license_codes = load_license_codes()
-    return entered_code in license_codes
+# def on_mouse_enter(event):
+#     label.config(text="الفأرة فوق الزر!")
 
-def create_home_frame(parent, app):
-    """Crée la frame d'accueil avec la vérification de licence."""
-    home_frame = ctk.CTkFrame(parent, fg_color="white")
+# def on_mouse_leave(event):
+#     label.config(text="الفأرة خارج الزر!")
 
-    # Titre
-    title_label = ctk.CTkLabel(home_frame, text="Page d'Accueil", font=("Arial", 24, "bold"))
-    title_label.pack(pady=20)
+# def on_window_close():
+#     if messagebox.askyesno("إغلاق", "هل تريد حقًا إغلاق النافذة؟"):
+#         root.destroy()
 
-    # Champ pour entrer le code de licence
-    license_label = ctk.CTkLabel(home_frame, text="Entrez le code de licence :", font=("Arial", 16))
-    license_label.pack(pady=10)
+# # إنشاء نافذة
+# root = tk.Tk()
+# root.title("أحداث متعددة")
 
-    license_entry = ctk.CTkEntry(home_frame, font=("Arial", 14), width=300)
-    license_entry.pack(pady=10)
+# # إضافة عنصر Label
+# label = tk.Label(root, text="جرب الأحداث المختلفة")
+# label.pack(pady=20)
 
-    # Bouton pour vérifier la licence
-    def on_verify_license():
-        entered_code = license_entry.get().strip()
-        if verify_license(entered_code):
-            messagebox.showinfo("Succès", "Licence valide. Vous pouvez maintenant vous connecter.")
-            app.show_frame("Login")  # Afficher la frame de connexion
-        else:
-            messagebox.showerror("Erreur", "Code de licence invalide.")
+# # إضافة عنصر Button
+# button = tk.Button(root, text="انقر هنا", command=on_button_click)
+# button.pack(pady=10)
 
-    verify_button = ctk.CTkButton(home_frame, text="Vérifier la licence", font=("Arial", 16), command=on_verify_license)
-    verify_button.pack(pady=20)
+# # ربط أحداث الفأرة
+# button.bind("<Enter>", on_mouse_enter)
+# button.bind("<Leave>", on_mouse_leave)
 
-    return home_frame
+# # ربط حدث الضغط على مفتاح
+# root.bind("<Key>", on_key_press)
+
+# # ربط حدث إغلاق النافذة
+# root.protocol("WM_DELETE_WINDOW", on_window_close)
+
+# # تشغيل النافذة
+# root.mainloop()

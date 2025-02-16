@@ -29,6 +29,18 @@ import bcrypt
 import os
 from PIL import Image, ImageTk
 
+import sys
+
+def get_resource_path(relative_path):
+    """ Récupère le chemin réel du fichier après la compilation """
+    try:
+        base_path = sys._MEIPASS  # Essayer d'accéder à _MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")  # Utiliser le répertoire courant en cas d'erreur
+
+    return os.path.join(base_path, relative_path)
+
+
 def connect_db():
     try:
         global connect
@@ -57,10 +69,20 @@ def update_entry_justification():
             entry.configure(justify=justify)
 
 # for entries
-def create_entry(parent,width=400,show=''):
-    entry = ctk.CTkEntry(parent, justify=justify,font=("Arial", 14), fg_color='#fff',
-                        border_width=1, border_color='#ddd', corner_radius=2, width=width,show= show)
-    entry.pack(ipady=10 , padx=20)
+def create_entry(parent,width=370):
+    entry_frame = ctk.CTkFrame(parent, fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=2)
+    entry_frame.pack(fill='x', padx=20, pady=10,ipady=10,expand=True)
+    entry = ctk.CTkEntry(entry_frame, justify=justify,font=("Arial", 14), fg_color='#fff',
+                        border_width=0, border_color='#ddd', corner_radius=2, width=width)
+    entry.pack(side='left',padx=10,pady=2)
+
+    user_image_path = get_resource_path("images/profile.png")
+    
+    user_image = Image.open(user_image_path).resize((30, 30))     
+    user_icon = ImageTk.PhotoImage(user_image)
+    
+    toggle_button = ctk.CTkButton(entry_frame, image=user_icon, text="", width=30, fg_color='#f8f9fa', hover_color='#eee',corner_radius=0)
+    toggle_button.pack(side='right',expand=True,fill='both',pady=1,padx=1,)
     entry_widgets.append(entry)
     return entry
 
@@ -69,6 +91,42 @@ def create_label(parent,text,wid=200):
     label = ctk.CTkLabel(parent, bg_color='#f9f9f9', font=("Arial", 16,'bold'), anchor='center', text=text, width=wid)
     label_widgets.append(label)
     return label
+
+# Fonction pour basculer l'affichage du mot de passe
+def toggle_password_visibility(entry, button):
+    if entry.cget('show') == '':
+        entry.configure(show='*')
+        button.configure(image=show_icon)  # Icône pour montrer le mot de passe
+    else:
+        entry.configure(show='')
+        button.configure(image=hide_icon)  # Icône pour masquer le mot de passe
+
+# Fonction pour créer un entry avec un bouton de visibilité
+def create_password_entry(parent, width=370):
+    entry_frame = ctk.CTkFrame(parent, fg_color='#fff',border_width=1,border_color='#ddd',corner_radius=2)
+    entry_frame.pack(fill='x', padx=20, pady=10,ipady=10,expand=True)
+
+    entry = ctk.CTkEntry(entry_frame, justify=justify,font=("Arial", 14), fg_color='#fff',
+                        border_width=0, border_color='#ddd', corner_radius=2, width=width,show='*')
+    entry.pack(side='left',padx=10,pady=2)
+
+    # Charger les icônes pour montrer/masquer le mot de passe
+    global show_icon, hide_icon
+    
+    show_image_path = get_resource_path("images/show.png")
+    hide_image_path = get_resource_path("images/hide.png")
+    
+    show_image = Image.open(show_image_path).resize((30, 30))  # Remplacez par le chemin de votre icône "show"
+    hide_image = Image.open(hide_image_path).resize((30, 30))  # Remplacez par le chemin de votre icône "hide"
+    show_icon = ImageTk.PhotoImage(show_image)
+    hide_icon = ImageTk.PhotoImage(hide_image)
+
+    toggle_button = ctk.CTkButton(entry_frame, image=show_icon, text="", width=30, fg_color='#f8f9fa', hover_color='#eee',corner_radius=0,
+                                command=lambda: toggle_password_visibility(entry, toggle_button))
+    toggle_button.pack(side='right',expand=True,fill='both',pady=1,padx=1,)
+
+    entry_widgets.append(entry)
+    return entry
 
 logged = False
 user_logged = None
@@ -180,10 +238,10 @@ class App(ctk.CTk):
         
         theme = ctk.get_appearance_mode() 
         if theme == 'light':
-            image_path = os.path.join(os.path.dirname(__file__), "frames/images", "sun.png") 
+            image_path = get_resource_path("images/sun.png")
             image = ctk.CTkImage(light_image=Image.open(image_path), size=(30, 30),)
         else:
-            image_path = os.path.join(os.path.dirname(__file__), "frames/images", "moon.png")
+            image_path = get_resource_path("images/moon.png")
             image = ctk.CTkImage(light_image=Image.open(image_path), size=(30, 30),)
 
         theme_button = ctk.CTkButton(self.navbar,text='',fg_color='transparent',hover=False, command=self.update_theme,width=10,height=10,corner_radius=50)
@@ -199,7 +257,7 @@ class App(ctk.CTk):
 
             # Products dropdown
             products_dropdown = self.create_dropdown(self.navbar, 'المنتجات', [
-                ("عرض المنتجات", lambda: self.show_frame("Products", user=user)),
+                ("منتجاتنا", lambda: self.show_frame("Products", user=user)),
                 ("إضافة منتج", lambda: self.show_frame("AddProduct"))
             ])
             products_dropdown.pack(side="right", padx=1, pady=5)
@@ -287,7 +345,7 @@ class App(ctk.CTk):
         dropdown = ctk.CTkOptionMenu(parent, 
             text_color="#fff", dropdown_fg_color="#fff", fg_color='#333',
             font=("Arial", 14), dropdown_font=("Arial", 14), width=90,
-            button_color="#333", dropdown_hover_color="#fff", button_hover_color='#333',
+            button_color="#333", dropdown_hover_color="#6df", button_hover_color='#333',
             values=[option[0] for option in options], anchor='e',
             variable=default,
             command=on_select)
@@ -387,7 +445,7 @@ def create_login_frame(root,app):
     
     # password_hash
     create_label(login_frame,"كلمة المرور").pack(ipady=10 ,pady=10, padx=20,fill='x')
-    password_entry = create_entry(login_frame,show='*')
+    password_entry = create_password_entry(login_frame)  # Utilisez la nouvelle fonction pour créer l'entry du mot de passe
     # show='*'
     
     # global logged 
@@ -397,7 +455,7 @@ def create_login_frame(root,app):
 
         # Vérification des champs vides
         if not username or not password:
-            messagebox.showerror("Erreur", "Veuillez remplir tous les champs.")
+            messagebox.showerror("خطا", "يرجى تعبئة جميع الحقول")
             return
 
         # Connexion à la base de données
@@ -424,7 +482,7 @@ def create_login_frame(root,app):
         width=400,
         command=login_action,corner_radius=2
     )
-    add_button.pack(pady=20,padx=20,ipady=10)# Fonction pour afficher la fenêtre de mise à jour
+    add_button.pack(pady=20,fill='x',padx=20,ipady=10)# Fonction pour afficher la fenêtre de mise à jour
 
     return login_frame
 

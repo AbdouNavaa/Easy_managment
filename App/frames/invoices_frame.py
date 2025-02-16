@@ -644,7 +644,7 @@ def open_update_window(sale, update_callback):
     status_entry = ctk.CTkOptionMenu(
         second_frame_entry,values=status_list,anchor='center',
         text_color="#333",dropdown_fg_color="#fff",
-        font=font_arial,
+        font=font_arial_title,dropdown_font=font_arial_title,
         button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
         variable=status
     )
@@ -659,7 +659,7 @@ def open_update_window(sale, update_callback):
     payment_method_entry = ctk.CTkOptionMenu(
         second_frame_entry,values=methods,anchor='center',
         text_color="#333",dropdown_fg_color="#fff",
-        font=font_arial,
+        font=font_arial_title,dropdown_font=font_arial_title,
         button_color="white",fg_color="white",dropdown_hover_color="#f0f0f0",button_hover_color='#fff',
         variable=methode,
     )
@@ -822,7 +822,7 @@ def details_and_update(sale_id,update_callback):
                 inv_data = list(inv_data)
             product_code = result[1]
             quantity = float(quantity_entry.get())
-            price = float(result[11])
+            price = float(result[12])
             total = quantity * price
     
             # Check if product already exists in inv_data
@@ -1092,46 +1092,45 @@ total_qty = 0
 
 
 
-def create_sales_frame(root,user=None):
-    sales_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
-
-    show_title_frame(sales_frame)
-
-    show_sales_table(root,sales_frame,user=user,is_admin = user[4] if user else 1)
-    return sales_frame
-
-# def create_sales_frame(root):
+# def create_sales_frame(root,user=None):
 #     sales_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
 
-#     # Titre
 #     show_title_frame(sales_frame)
 
-#     # Frame pour le tableau des catégories
-#     table_frame = ctk.CTkFrame(sales_frame, fg_color="#fff")
-#     table_frame.pack(fill="both", expand=True, padx=10, pady=10)
-
-#     def set_user(user):
-#         # Nettoyer la frame avant d'afficher un nouveau tableau
-#         for widget in table_frame.winfo_children():
-#             widget.destroy()
-
-#         # Afficher le tableau des catégories en fonction de l'utilisateur
-#         is_admin = user[4] if user else 0
-#         show_sales_table(root,table_frame, is_admin=is_admin)
-
-#     # Ajouter la méthode set_user à la frame
-#     sales_frame.set_user = set_user
-
+#     show_sales_table(root,sales_frame,user=user,is_admin = user[4] if user else 1)
 #     return sales_frame
 
-#     return sale_frame
-window = ctk.CTk(fg_color="#fff")
-window.title('customtkinter app')
-window.geometry('1200x550')
-window.state('zoomed')
+def create_sales_frame(root):
+    sales_frame = ctk.CTkFrame(root, corner_radius=10, fg_color="#fff")
 
-sales_frame = create_sales_frame(window)
-sales_frame.pack(fill='both', expand=True)
+    # Titre
+    show_title_frame(sales_frame)
 
-# run
-window.mainloop()
+    # Frame pour le tableau des catégories
+    table_frame = ctk.CTkFrame(sales_frame, fg_color="#fff")
+    table_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    def set_user(user):
+        # Nettoyer la frame avant d'afficher un nouveau tableau
+        for widget in table_frame.winfo_children():
+            widget.destroy()
+
+        # Afficher le tableau des catégories en fonction de l'utilisateur
+        is_admin = user[4] if user else 0
+        show_sales_table(root,table_frame, is_admin=is_admin)
+
+    # Ajouter la méthode set_user à la frame
+    sales_frame.set_user = set_user
+
+    return sales_frame
+
+# window = ctk.CTk(fg_color="#fff")
+# window.title('customtkinter app')
+# window.geometry('1200x550')
+# window.state('zoomed')
+
+# sales_frame = create_sales_frame(window)
+# sales_frame.pack(fill='both', expand=True)
+
+# # run
+# window.mainloop()

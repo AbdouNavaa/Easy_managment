@@ -34,6 +34,8 @@ import bcrypt
 
 def open_add_window(refresh_callback):
     add_window = tk.Toplevel(background='#fff')
+    add_window.grab_set()  # Make the window modal
+    add_window.focus_set()
     # add_window.pack()
     font_arial_title =("Arial", 16,'bold')
     font_arial =("Arial", 14)
@@ -126,6 +128,8 @@ def open_add_window(refresh_callback):
 def open_update_window(user, update_callback):
     
     update_window = tk.Toplevel(background='#fff')
+    update_window.grab_set()  # Make the window modal
+    update_window.focus_set()
     # update_window.pack()
     update_window.title("تعديل")
 

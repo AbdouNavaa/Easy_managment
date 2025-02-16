@@ -213,6 +213,8 @@ def direction_btn(parent,text):
     
 def open_add_window(refresh_callback):
     add_window = tk.Toplevel(background='#fff')
+    add_window.grab_set()  # Make the window modal
+    add_window.focus_set()
     add_window.title("اضافة مورد جديد")
 
     font_arial_title = ("Arial", 16, 'bold')
@@ -352,7 +354,8 @@ def open_update_window(supplier, update_callback):
     entry_widgets = []  # Reset the list for each new window
     
     update_window = tk.Toplevel(background='#fff')
-    # update_window.pack()
+    update_window.grab_set()  # Make the window modal
+    update_window.focus_set()
     update_window.title("تعديل المورد")
 
     supp=fetch_supplier(supplier[0])
